@@ -7,19 +7,59 @@
     <meta name="description" content="">
     <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
     <meta name="generator" content="Hugo 0.118.2">
-    <title>Tableau visualisations - Final project</title>
+    <title>Tableau visualisations Diagnostics</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
     <link rel="canonical" href="https://getbootstrap.com/docs/5.3/examples/dashboard/">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3">
     <link rel="stylesheet" href="./css/style.css">
     <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js'></script>
+    <!--<script type="module" src='js/tableau.js'></script>-->
+    <script src='js/main.js'></script>
+    <!--<script type="module" src='./js/tutorial.js'></script>-->
     <script type="module">
-      import * as tableau from "./js/main.js";
-      for (let exported of Object.keys(tableau)) {
-        window[exported] = tableau[exported];
+      import * as tutorial from "./js/tutorial.js";
+      for (let exported of Object.keys(tutorial)) {
+        window[exported] = tutorial[exported];
       }
-      $(initialiseViz(0, vizUrls[0]));
+      $(initializeViz);
     </script>
+
+    <script type="module">
+      // TableauEventType represents the type of Tableau embedding event that can be listened for.
+      import { TableauEventType } from "https://public.tableau.com/javascripts/api/tableau.embedding.3.latest.js";
+
+      async function handleFirstInteractive(e) {
+          const getDataButton = document.getElementById("getData");
+
+          // Get data from a specified sheet.
+          getDataButton.onclick = async () => {
+              const currentWorksheet = viz.workbook.activeSheet.worksheets[0];
+              //.find(sheet => sheet.name === "Figure SE17g.1 ");
+              const dataHeader = await currentWorksheet.getSummaryColumnsInfoAsync();
+              // const tables = await sheet.getUnderlyingTablesAsync();
+              const summaryDataOptions = {
+                  maxRows: 0, // Max rows to return. Use 0 to return all rows.
+                  ignoreAliases: false,
+                  ignoreSelection: true,
+                  includeDataValuesOption: 'only-formatted-values',
+                  //columnsToInclude: ["Jurisdiction", "ColYear", "RowDescription5", "SUM(Data Value)"] Doesn't work.  Can do byID but problemmatic???
+              };
+              const dataTable = await currentWorksheet.getSummaryDataAsync(summaryDataOptions);
+              
+              // const underlyingTableData = await sheet.getUnderlyingTableDataAsync(tables[0].id, options);
+
+              // Add data to HTML element.
+              const target = document.getElementById("dataTarget");
+              target.innerHTML = `<h4>Summary Data:</h4><p>${JSON.stringify(dataHeader)}</p>`;
+              target.innerHTML += `<p>${JSON.stringify(dataTable.data)}</p>`;
+          };
+      }
+
+      const viz = document.getElementById("viz");
+
+      // Event fired when a viz first becomes interactive.
+      viz.addEventListener(TableauEventType.FirstInteractive, handleFirstInteractive);
+  </script>
 
 <!--<link href="../assets/dist/css/bootstrap.min.css" rel="stylesheet">-->
 
@@ -156,7 +196,22 @@
             <li class="nav-item">
               <a class="nav-link d-flex align-items-center gap-2 active" aria-current="page" href="#">
                 <svg class="bi"><use xlink:href="#house-fill"/></svg>
-                Dashboard
+                Dashboard diags
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link d-flex align-items-center gap-2" href="#" onclick="querySheets();">
+                Sheets in the workbook
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link d-flex align-items-center gap-2" href="#" onclick="queryDashboard0();">
+                Worksheets in the dashboard 0
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link d-flex align-items-center gap-2" href="#" onclick="queryDashboard1();">
+                Worksheets in the dashboard 1
               </a>
             </li>
           </ul>
@@ -177,17 +232,28 @@
 
     <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">Dashboard</h1>
+        <h1 class="h2">Tableau JavaScript API v3 testing</h1>
         <div class="btn-toolbar mb-2 mb-md-0">
           <div class="btn-group me-2">
             <button type="button" class="btn btn-sm btn-outline-secondary">Share</button>
-            <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="exportCrossTab();">Export</button>
           </div>
         </div>
       </div>
-      <div id="tableauViz0" height="527px" width="100%"></div>
+
+      <div id="tableauViz">
+        <tableau-viz id="viz"></tableau-viz>
+      </div>
+      <!--<div id="viz" height="527px" width="100%"></div>-->
       <!--<div id="tableauViz1" height="527px" width="100%"></div>
-      <div id="tableauViz2" height="627px" width="100%"></div>-->
+      <div id="tableauViz2" height="527px" width="100%"></div>
+      <div id="tableauViz3" height="627px" width="100%"></div>-->
+
+      <div>
+        <button id="getData" type="button" class="btn btn-sm btn-outline-secondary">Get Data</button>
+      </div>
+      <!-- Placeholder for the Underlying Data.  -->
+      <div id="dataTarget"></div>
           
       </div>
     </main>
