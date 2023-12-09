@@ -27,7 +27,7 @@ export function initializeViz() {
   };
 
   viz.addEventListener(TableauEventType.FirstInteractive, onFirstInteractive);
-  viz.src = "https://public.tableau.com/views/CtG17_DigitalInclusion_Supp_embargo_2023/FigureSE17g_1";
+  viz.src = "https://public.tableau.com/views/2023_CtG06_EducationPathways_Supp/FigureSE6a_1";
 
 }
 
@@ -191,7 +191,7 @@ export async function queryDashboard0() {
 export async function queryDashboard1() {
   // Notice that the filter is still applied on the "GDP per capita by region"
   // worksheet in the dashboard, but the marks are not selected.
-  const dashboard = await workbook.activateSheetAsync("Figure SE17g.1");
+  const dashboard = await workbook.activateSheetAsync("Figure SE6a.1");
   const worksheets = dashboard.worksheets;
   let text = getSheetsAlertText(worksheets);
   text = "Worksheets in the dashboard:\n" + text;

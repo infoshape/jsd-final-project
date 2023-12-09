@@ -14,7 +14,9 @@
 
 ## App [<sup>[TOC]</sup>](#table-of-contents)
 
-*Link to come*
+The App is [Tableau visualisations: Dashboard](https://infoshape.github.io/jsd-final-project/).
+
+The diagnostic page to develop the [Tableau JavaScript API v3 testing](https://infoshape.github.io/jsd-final-project/diags.html).
 
 ## Overview [<sup>[TOC]</sup>](#table-of-contents)
 

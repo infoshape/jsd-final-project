@@ -4,7 +4,6 @@ import {
 } from "https://public.tableau.com/javascripts/api/tableau.embedding.3.latest.js";
 
 export const vizUrls = [
-  "https://public.tableau.com/views/CtG17_DigitalInclusion_Supp_embargo_2023/FigureSE17g_1",
   "https://public.tableau.com/views/2023_CtG06_EducationPathways_Supp/FigureSE6a_1",
   "https://public.tableau.com/views/2023_CtG06_EducationPathways_Supp/FigureSE6a_2",
   "https://public.tableau.com/views/2023_CtG06_EducationPathways_Supp/FigureSE6a_3"
