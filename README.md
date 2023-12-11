@@ -14,13 +14,13 @@
 
 ## App [<sup>[TOC]</sup>](#table-of-contents)
 
-The App is [Tableau visualisations: Dashboard](https://infoshape.github.io/jsd-final-project/).
+The App is [Tableau visualisations: Dashboard](https://infoshape.github.io/jsd-final-project/) [Under development].
 
-The diagnostic page to develop the [Tableau JavaScript API v3 testing](https://infoshape.github.io/jsd-final-project/diags.html).
+The diagnostic page to develop code is [Tableau JavaScript API v3 testing](https://infoshape.github.io/jsd-final-project/diags.html).
 
 ## Overview [<sup>[TOC]</sup>](#table-of-contents)
 
-Tableau JavaScript API to embed multiple visualisations into one webpage with a common set of HTML filter buttons to control them via the API.  Also use the API to extract the underlying data of vizzes and pivot the data to produce an accessible data table alternative. 
+Tableau JavaScript API v3 to embed multiple visualisations into one webpage with a common set of HTML filter buttons to control them via the API.  Also use the API to extract the underlying data of vizzes and pivot the data to produce an accessible data table alternative. 
 
 ## Planning stage [<sup>[TOC]</sup>](#table-of-contents)
 
