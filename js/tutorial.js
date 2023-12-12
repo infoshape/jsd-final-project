@@ -27,7 +27,9 @@ export function initializeViz() {
   };
 
   viz.addEventListener(TableauEventType.FirstInteractive, onFirstInteractive);
-  viz.src = "https://public.tableau.com/views/2023_CtG06_EducationPathways_Supp/FigureSE6a_1";
+  viz.src = "https://public.tableau.com/views/2023_CtG06_EducationPathways_Supp/FigureSE6c_1";
+  
+  // "https://public.tableau.com/views/2023_CtG06_EducationPathways_Supp/FigureSE6a_1";
 
 }
 
