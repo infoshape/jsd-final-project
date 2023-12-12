@@ -12,33 +12,33 @@
 - **[Wishlist/Future features](#wishlist-toc)**
   
 
-## App [<sup>[TOC]</sup>](#table-of-contents)
+## App [<sup><sup><sup>[TOC]</sup></sup></sup>](#table-of-contents)
 
 The App is [Tableau visualisations: Dashboard](https://infoshape.github.io/jsd-final-project/) [Under development].
 
-The diagnostic page to develop code is [Tableau JavaScript API v3 testing](https://infoshape.github.io/jsd-final-project/diags.html).
+The diagnostic page used to develop the App is [Tableau JavaScript API v3 testing](https://infoshape.github.io/jsd-final-project/diags.html).
 
-## Overview [<sup>[TOC]</sup>](#table-of-contents)
+## Overview [<sup><sup><sup>[TOC]</sup></sup></sup>](#table-of-contents)
 
 Tableau JavaScript API v3 to embed multiple visualisations into one webpage with a common set of HTML filter buttons to control them via the API.  Also use the API to extract the underlying data of vizzes and pivot the data to produce an accessible data table alternative. 
 
-## Planning stage [<sup>[TOC]</sup>](#table-of-contents)
+## Planning stage [<sup><sup><sup>[TOC]</sup></sup></sup>](#table-of-contents)
 
 *Coming...*
 
-## Screenshots [<sup>[TOC]</sup>](#table-of-contents)
+## Screenshots [<sup><sup><sup>[TOC]</sup></sup></sup>](#table-of-contents)
 
 *Coming...*
 
-## Technical hurdle [<sup>[TOC]</sup>](#table-of-contents)
+## Technical hurdle [<sup><sup><sup>[TOC]</sup></sup></sup>](#table-of-contents)
 
 *Coming...*
 
-## What I learned [<sup>[TOC]</sup>](#table-of-contents)
+## What I learned [<sup><sup><sup>[TOC]</sup></sup></sup>](#table-of-contents)
 
 *Coming...*
 
-## Other technology [<sup>[TOC]</sup>](#table-of-contents)
+## Other technology [<sup><sup><sup>[TOC]</sup></sup></sup>](#table-of-contents)
 
 | Technology                    | Description                                              |
 | -------------------------- | -------------------------------------------------------- |
@@ -47,6 +47,12 @@ Tableau JavaScript API v3 to embed multiple visualisations into one webpage with
 | `Bootstrap 5`                       | Frontend framework/ <br />dashboard template                               |
 
 
-## Wishlist/Future features [<sup>[TOC]</sup>](#table-of-contents)
+## Wishlist/Future features [<sup><sup><sup>[TOC]</sup></sup></sup>](#table-of-contents)
 
 *Coming...*
+
+<style>
+sup {
+  top: -0.25em !important;
+}
+</style>

@@ -18,7 +18,6 @@
       for (let exported of Object.keys(tableau)) {
         window[exported] = tableau[exported];
       }
-      $(initialiseViz(0, vizUrls[0]));
     </script>
 
 <!--<link href="../assets/dist/css/bootstrap.min.css" rel="stylesheet">-->
@@ -171,6 +170,7 @@
               </a>
             </li>
           </ul>
+          <p style="margin-top: 25rem">This is a Bootstrap 5 example template: <a href="https://getbootstrap.com/docs/5.3/examples/dashboard">Dashboard</a>, which has custom colours.</p>
         </div>
       </div>
     </div>
@@ -186,11 +186,11 @@
         </div>
       </div>
       <div id="tableauViz0" height="527px" width="100%"></div>
+      <div id="dataTable0"></div>
+      <div id="tableauViz1" height="527px" width="100%"></div>
       <div id="dataTable1"></div>
-      <!--<div id="tableauViz1" height="527px" width="100%"></div>
-      <div id="dataTable2"></div>
       <div id="tableauViz2" height="627px" width="100%"></div>
-      <div id="dataTable3"></div>-->
+      <div id="dataTable2"></div>
       </div>
     </main>
   </div>

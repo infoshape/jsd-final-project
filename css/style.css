@@ -1,14 +1,24 @@
-table caption {
+main {
+  background-color: #f7f7f7;
+}
+.datatable {
+  background-color: #fff;
+}
+.datatable caption {
   margin-bottom: 0.4em;
   text-align: left;
   margin-top: 10px;
   caption-side: top;
 }
-table.datatable td, table.datatable th {
+.datatable thead tr:first-child {
+  background-color: rgb(93,96,104);
+  color: #fff;
+}
+.datatable td, .datatable th {
   border-right: 1px solid #dee2e6;
 }
 .datatable tr:nth-of-type(even) {
-background: #f7f7f7;
+/* background: #f7f7f7; */
 }
 .datatable td, .datatable th {
 border-right: 1px solid #dee2e6;
@@ -45,6 +55,11 @@ border-right: 1px solid #dee2e6;
 
 .sidebar .nav-link.active {
   color: #2470dc;
+}
+
+.sidebar p { 
+  padding: 0.5rem 1.0rem;
+  font-size: 0.875rem;
 }
 
 .sidebar-heading {
