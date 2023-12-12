@@ -122,7 +122,24 @@
 </svg>
 
 <header class="navbar sticky-top bg-dark flex-md-nowrap p-0 shadow" data-bs-theme="dark">
-  <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3 fs-6 text-white" href="#">Tableau visualisations</a>
+  <div class="row py-2">
+    <div class="col-md-3 pt-2">
+      <a class="navbar-brand me-0 py-1 px-3 fs-6 text-white" href="#">Tableau visualisations</a>
+    </div><!-- col-3 -->
+    <div class="col-md-5">
+      <div class="btn-group mt-1 ms-0 mb-1" role="group" aria-label="Radio toggle button group for indigenous status">
+        <input type="radio" class="btn-check" name="indigenousradio" id="radio1" autocomplete="off" value="Aboriginal and Torres Strait Islander people" checked="" onchange="filter( 'Indigenous Status', value );">
+        <label class="btn btn-outline-light btn-sm" for="radio1">Aboriginal and Torres Strait Islander</label>
+        <input type="radio" class="btn-check" name="indigenousradio" id="radio2" autocomplete="off" value="Non-Indigenous people" onchange="filter( 'Indigenous Status', value );">
+        <label class="btn btn-outline-light btn-sm" for="radio2">Non-Indigenous</label>
+      </div>
+    </div><!-- col-5 -->
+    <div class="col-md-4">
+      <div id="jurisButtons" class="btn-group mt-1" role="group" aria-label="Radio toggle button group for jurisdiction">
+        <input type="radio" class="btn-check" name="jurisradio" id="btnradio0" autocomplete="off" value="Aust" checked="" onchange="filter( 'Jurisdiction', value );"><label class="btn btn-outline-light btn-sm" for="btnradio0">Aust</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio1" autocomplete="off" value="NSW" onchange="filter( 'Jurisdiction', value );"><label class="btn btn-outline-light btn-sm" for="btnradio1">NSW</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio2" autocomplete="off" value="Vic" onchange="filter( 'Jurisdiction', value );"><label class="btn btn-outline-light btn-sm" for="btnradio2">Vic</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio3" autocomplete="off" value="Qld" onchange="filter( 'Jurisdiction', value );"><label class="btn btn-outline-light btn-sm" for="btnradio3">Qld</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio4" autocomplete="off" value="WA" onchange="filter( 'Jurisdiction', value );"><label class="btn btn-outline-light btn-sm" for="btnradio4">WA</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio5" autocomplete="off" value="SA" onchange="filter( 'Jurisdiction', value );"><label class="btn btn-outline-light btn-sm" for="btnradio5">SA</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio6" autocomplete="off" value="Tas" onchange="filter( 'Jurisdiction', value );"><label class="btn btn-outline-light btn-sm" for="btnradio6">Tas</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio7" autocomplete="off" value="ACT" onchange="filter( 'Jurisdiction', value );"><label class="btn btn-outline-light btn-sm" for="btnradio7">ACT</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio8" autocomplete="off" value="NT" onchange="filter( 'Jurisdiction', value );"><label class="btn btn-outline-light btn-sm" for="btnradio8">NT</label>
+      </div>
+    </div><!-- col-4 -->
+  </div>
 
   <ul class="navbar-nav flex-row d-md-none">
     <li class="nav-item text-nowrap">
@@ -162,15 +179,15 @@
 
           <hr class="my-3">
 
-          <ul class="nav flex-column mb-auto">
+          <!--<ul class="nav flex-column mb-auto">
             <li class="nav-item">
               <a class="nav-link d-flex align-items-center gap-2" href="#">
                 <svg class="bi"><use xlink:href="#gear-wide-connected"/></svg>
                 Settings
               </a>
             </li>
-          </ul>
-          <p style="margin-top: 25rem">This is a Bootstrap 5 example template: <a href="https://getbootstrap.com/docs/5.3/examples/dashboard">Dashboard</a>, which has custom colours.</p>
+          </ul>-->
+          <p style="margin-top: 30rem">This is a Bootstrap 5 example template: <a href="https://getbootstrap.com/docs/5.3/examples/dashboard">Dashboard</a>, which has been customised.</p>
         </div>
       </div>
     </div>

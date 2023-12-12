@@ -1,22 +1,22 @@
 import { 
   TableauViz,
   TableauEventType,
+  FilterUpdateType,
 } from "https://public.tableau.com/javascripts/api/tableau.embedding.3.latest.js";
-
-//"https://public.tableau.com/views/2023_CtG16_CultureLanguage_Supp/FigureSE16e_2",
-//"https://public.tableau.com/views/2023_CtG06_EducationPathways_Supp/FigureSE6a_1",
-//"https://public.tableau.com/views/2023_CtG06_EducationPathways_Supp/FigureSE6a_2",
-//"https://public.tableau.com/views/2023_CtG06_EducationPathways_Supp/FigureSE6a_4"
 
 let vizWorksheets= [];
 const vizUrls = [
+
   "https://public.tableau.com/views/2023_CtG06_EducationPathways_Supp/FigureSE6c_1",
   "https://public.tableau.com/views/CtG04_EarlyYears_Disaggs_2023/FigureCtG4_5",
-  "https://public.tableau.com/views/2023_CtG06_EducationPathways_Supp/FigureSE6a_3",
+  "https://public.tableau.com/views/2023_CtG06_EducationPathways_Supp/FigureSE6a_3"
+
 ] // vizzes
 
 for( let i=0; i < vizUrls.length; i++ ){
+
   initialiseViz(i, vizUrls[i]);
+
 }; // initialise vizzes
 
 function initialiseViz( vizIndex, vizUrl ) {
@@ -25,6 +25,7 @@ function initialiseViz( vizIndex, vizUrl ) {
   viz.hideTabs = true;
 
   const onFirstInteractive = () => {
+
     const currentWorksheet = viz.workbook.activeSheet.worksheets[0];
     vizWorksheets[vizIndex] = currentWorksheet;
     console.log('viz worksheets:', vizWorksheets);
@@ -47,7 +48,7 @@ export async function getTableData( vizIndex, htmlTable = 'current' ){
   const dataTable = await requestData( currentWorksheet ); 
   console.log('Data table:', dataTable);
 
-  // Set table-wide values
+  // Get table values
   const tableNumber = dataTable[0][dataLabelIndexes.TableNumber].formattedValue;
   const unit = dataTable[0][dataLabelIndexes.Unit].formattedValue;
   console.log('Val:', dataLabelIndexes.DataValue);
@@ -60,8 +61,21 @@ export async function getTableData( vizIndex, htmlTable = 'current' ){
 
 }; // getTableData()
 
-function onFilterChanged(){
-  alert('Filter changed!');
+export async function filter( filterName, filterValue ) {
+  
+  for( let i=0; i < vizWorksheets.length; i++ ){ // Update the filter and getTableData for all tab vizzes
+
+    const filterValueArray = Array.of( filterValue );
+    await vizWorksheets[ i ].applyFilterAsync(filterName, filterValueArray, FilterUpdateType.Replace);
+    getTableData( i );
+  };
+}; // filter(): "Jurisdiction" or "Indigenous Status"
+
+function onFilterChanged( ev ){
+
+  const vizIndex = ev.target.parentElement.id.replace('tableauViz', '');
+  getTableData( vizIndex );
+
 }; // onFilterChanged()
 
 async function requestHeaderProcessColumns( worksheet ){
@@ -89,6 +103,7 @@ async function requestHeaderProcessColumns( worksheet ){
 async function requestData( worksheet ){
 
   const summaryDataOptions = {
+
       maxRows: 0,
       ignoreAliases: false,
       ignoreSelection: true,
@@ -140,47 +155,23 @@ function reduceData( dataTable, dataLabelIndexes ){
 
 function renderHtml( pivotTable, tableNumber, unit, vizIndex ) { 
   
-  // With rowspan | , datatableNum, target, rowHeaders
   //npPresent = naPresent = napPresent = nilPresent = false;
   const rowHeaders = [""]; // FIX!!!
-  const rowSpan = rows =>  // TEST PROPERLY!!!
-    rows.map((row, rowIndex) =>
-      row.map((item, colIndex) => ({
-          data: item,
-          rowSpan: countRows(rows, rowIndex, colIndex)
-      }))
-    );
-  
-  const countRows = (rows, rowIndex, colIndex) => {
-    if (colIndex === 0) { // Only group 1st column
-      if (rowIndex > 0 && rows[rowIndex - 1][colIndex] === rows[rowIndex][colIndex]) {
-        return 0;
-      }
-    }
-    let count = 1;
-    if (colIndex === 0) { // Only group 1st column
-      while (count + rowIndex < rows.length && rows[rowIndex + count][colIndex] === rows[rowIndex][colIndex]) {
-        count++;
-      }
-    }
-    return count;
-  };
-
   const set1dp = true;  // FIX!!!
   const datatableNum = '1'; // FIX!!!
   let result = "<table data-unit='" + unit + "' class='table datatable mb-4'>";
   result += "<caption style='padding-bottom:0;color:#2c2c2c; font-weight:400;'>Data in figure " + tableNumber.substring(0, tableNumber.indexOf('.')) + '.' + datatableNum + " (" + unit + ")</caption><thead>";
 
-  rowSpan(pivotTable).forEach((row, rowIndex) => {
+  pivotTable.forEach((row, rowIndex) => {
 
     // Table header
     if ( rowIndex === 0 ) {  
       result += "<tr>";
       row.forEach((item, colIndex) => {
           if ( colIndex < rowHeaders.length ) {
-              result += "<th scope='col'><span class='visually-hidden'>" + item.data.toString() + "</span></th>";
+              result += "<th scope='col'><span class='visually-hidden'>" + item.toString() + "</span></th>";
           } else {
-              result += "<th scope='col' style='text-align: right;'>" + item.data.toString() + "</th>";
+              result += "<th scope='col' style='text-align: right;'>" + item.toString() + "</th>";
           }
       });
       result += "</tr></thead><tbody>";
@@ -189,34 +180,33 @@ function renderHtml( pivotTable, tableNumber, unit, vizIndex ) {
     } else {  
       result += "<tr>";
       row.forEach((item, colIndex) => {
-        if (item.rowSpan) {
+
           if ( colIndex < rowHeaders.length ) {
               if ( item.rowSpan > 1 ) {  // No need to print rowspan if = 1
-                  result += "<th rowspan='" + item.rowSpan + "' scope='row' class='nobr'>" + item.data.toString() + "</th>";
+                  result += "<th rowspan='" + item.rowSpan + "' scope='row' class='nobr'>" + item.toString() + "</th>";
               } else {
-                  result += "<th scope='row'>" + item.data.toString() + "</th>";
+                  result += "<th scope='row'>" + item.toString() + "</th>";
               }
           } else {
-              if (item.data.toString() === "np") { // Check for 'np' and set for footnote
+              if (item.toString() === "np") { // Check for 'np' and set for footnote
                   //npPresent = true;
               }
-              if (item.data.toString() === "na") { // Check for 'na' and set for footnote
+              if (item.toString() === "na") { // Check for 'na' and set for footnote
                   //naPresent = true;
               }
-              if (item.data.toString() === "..") { // Check for '..' and set for footnote
+              if (item.toString() === "..") { // Check for '..' and set for footnote
                   //napPresent = true;
               }
-              if (item.data.toString() === "0" || item.data.toString() === "0.0") { // Replace 0 or 0.0 with ndash and set for footnote
-                  item.data = '&ndash;';
+              if (item.toString() === "0" || item.toString() === "0.0") { // Replace 0 or 0.0 with ndash and set for footnote
+                  item = '&ndash;';
                   //nilPresent = true;
               } 
-              if ( (set1dp) && ( (item.data.toString() !== '&ndash;') && (item.data.toString() !== '..') && (item.data.toString() !== 'na') && (item.data.toString() !== 'np') ) ) { // Set 1 decimal place for nnn.0 but not 0 or 0.0
-                  result += "<td style='text-align: right;'>" + item.data.toFixed(1).toLocaleString('en-US') + "</td>";
+              if ( (set1dp) && ( (item.toString() !== '&ndash;') && (item.toString() !== '..') && (item.toString() !== 'na') && (item.toString() !== 'np') ) ) { // Set 1 decimal place for nnn.0 but not 0 or 0.0
+                  result += "<td style='text-align: right;'>" + item.toFixed(1).toLocaleString('en-US') + "</td>";
               } else {
-                  result += "<td style='text-align: right;'>" + item.data.toLocaleString('en-US') + "</td>";
+                  result += "<td style='text-align: right;'>" + item.toLocaleString('en-US') + "</td>";
               }
           }
-        }
       });
       result += "</tr>";
     }

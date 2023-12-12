@@ -51,7 +51,7 @@ Tableau JavaScript API v3 to embed multiple visualisations into one webpage with
 
 *Coming...*
 
-<style>
+<style style="display:none;">
 sup {
   top: -0.25em !important;
 }
