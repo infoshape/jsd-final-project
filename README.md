@@ -56,7 +56,7 @@ The biggest hurdle was getting my head around the code required to pivot the dat
 - Customisation options for row and column sorting and/or ordering to deal with underlying data issues.
 - Customisation to allow exclusion of specific visualisations from the effect of the common HTML filter buttons.
 - Spanning rows in the data table when the data is grouped.
-- JavaScript generated filter buttons to allow for custom setting and the option to turn off one or both.
+- JavaScript generated filter buttons to allow for custom setting and the option to turn off one set or both sets.
 - A hidden PNG alternative for the embedded Tableau visualisation, which is used when printing.
 - Share and export options via HTML buttons.
 
