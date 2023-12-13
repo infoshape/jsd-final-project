@@ -5,7 +5,7 @@
 - **[App](#app-toc)**
 - **[Overview](#overview-toc)**
 - **[Planning stage](#planning-stage-toc)**
-- **[Screenshots](#screenshots-toc)**
+- **[Screenshot](#screenshots-toc)**
 - **[Technical hurdle](#technical-hurdle-toc)**
 - **[What I learned](#something-learned-toc)**
 - **[Other technology](#other-technology-toc)**
@@ -20,23 +20,25 @@ The diagnostic page that was used to develop the App is [Tableau JavaScript API 
 
 ## Overview [<sup><sup><sup>[TOC]</sup></sup></sup>](#table-of-contents)
 
-Tableau JavaScript API v3 to embed multiple visualisations into one webpage with a common set of HTML filter buttons to control them via the API.  The API is also used to extract the underlying data of vizzes to produce an accessible data table alternative and to control the data presented via use of filters. 
+Tableau JavaScript API v3 to embed multiple visualisations into one webpage with a common set of HTML filter buttons to control them via the API.  The API is also used to extract the underlying data of visualisations to produce an accessible data table alternative and to control the data presented via use of filters. 
 
 ## Planning stage [<sup><sup><sup>[TOC]</sup></sup></sup>](#table-of-contents)
 
-*Coming...*
+The following illustration shows the structure of the underlying data returned by the Tableau JavaScript API and how its converted using a pivot function to produce the data table presented:<br />
+![Data conversion required](pivot-col.png?raw=true "The data conversion that occurs using the pivot function")
 
-## Screenshots [<sup><sup><sup>[TOC]</sup></sup></sup>](#table-of-contents)
+## Screenshot [<sup><sup><sup>[TOC]</sup></sup></sup>](#table-of-contents)
 
-![App screenshot](screenshot1.png?raw=true "Screenshot")
+![App screenshot](screenshot1.png?raw=true "Capture showing HTML filter buttons, viz and data table")
 
 ## Technical hurdle [<sup><sup><sup>[TOC]</sup></sup></sup>](#table-of-contents)
 
-*Coming...*
+The biggest hurdle was getting my head around the code required to pivot the data for presentation in the table.
 
 ## What I learned [<sup><sup><sup>[TOC]</sup></sup></sup>](#table-of-contents)
 
-*Coming...*
+- Its a little different handling a JavaScript module, namely, the Tableau JavaScript API **v3**.
+- Using Async/await is better/easier (for me) to use than Promises.
 
 ## Other technology [<sup><sup><sup>[TOC]</sup></sup></sup>](#table-of-contents)
 
@@ -56,4 +58,5 @@ Tableau JavaScript API v3 to embed multiple visualisations into one webpage with
 - Spanning rows in the data table when the data is grouped.
 - JavaScript generated filter buttons to allow for custom setting and the option to turn off one or both.
 - A hidden PNG alternative for the embedded Tableau visualisation, which is used when printing.
+- Share and export options via HTML buttons.
 

@@ -28,8 +28,7 @@ function initialiseViz( vizIndex, vizUrl ) {
 
     const currentWorksheet = viz.workbook.activeSheet.worksheets[0];
     vizWorksheets[vizIndex] = currentWorksheet;
-    console.log('viz worksheets:', vizWorksheets);
-    getTableData( vizIndex, 'default' );
+    getTableData( vizIndex );
   };
 
   viz.addEventListener(TableauEventType.FirstInteractive, onFirstInteractive);
@@ -39,46 +38,26 @@ function initialiseViz( vizIndex, vizUrl ) {
 
 } // initialiseViz()
 
-export async function getTableData( vizIndex, htmlTable = 'current' ){
+export async function getTableData( vizIndex ){
 
   const currentWorksheet = vizWorksheets[ vizIndex ];
-  console.log('vizIndex:', vizIndex);
-  console.log('currentWorksheet:', currentWorksheet);
+
+  // Request header and data, process headers
   const dataLabelIndexes = await requestHeaderProcessColumns( currentWorksheet );
   const dataTable = await requestData( currentWorksheet ); 
-  console.log('Data table:', dataTable);
 
-  // Store off specific table values: tableNumber, unit, dataIndex
+  // Store off specific table values: tableNumber, unit, dataIndex, whether the data has 1 decimal place.
   const tableNumber = dataTable[0][dataLabelIndexes.TableNumber].formattedValue;
   const unit = dataTable[0][dataLabelIndexes.Unit].formattedValue;
   const dataIndex = ( dataLabelIndexes.Value1dp > -1  ) ? dataLabelIndexes.Value1dp : dataLabelIndexes.DataValue;
   const set1dp = ( dataLabelIndexes.Value1dp > -1  ) ? true : false;
-  console.log('Val:', dataLabelIndexes.DataValue);
-  console.log('1dp:', dataLabelIndexes.Value1dp);
   
+  // Data table reduce size/columns, pivot and render.
   const simplifiedDataTable = reduceData( dataTable, dataLabelIndexes, dataIndex );
   const pivotTable = pivotData( simplifiedDataTable );
-  console.log('Pivot table:', pivotTable);
   renderHtml( pivotTable, tableNumber, unit, vizIndex, set1dp );
 
 }; // getTableData()
-
-export async function filter( filterName, filterValue ){
-  
-  for( let i=0; i < vizWorksheets.length; i++ ){ // Update the filter and getTableData for all tab vizzes
-
-    const filterValueArray = Array.of( filterValue );
-    await vizWorksheets[ i ].applyFilterAsync(filterName, filterValueArray, FilterUpdateType.Replace);
-    getTableData( i );
-  };
-}; // filter(): "Jurisdiction" or "Indigenous Status"
-
-function onFilterChanged( ev ){
-
-  const vizIndex = ev.target.parentElement.id.replace( 'tableauViz', '' );
-  getTableData( vizIndex );
-
-}; // onFilterChanged()
 
 async function requestHeaderProcessColumns( worksheet ){
 
@@ -93,13 +72,12 @@ async function requestHeaderProcessColumns( worksheet ){
   for( let i=0; i < labels.length; i++ ){ // Find the array indexes of all the important columns.
     
     const currentDataLabel = dataLabels.findIndex( l => l.includes( labels[i] ) );
+
     if( currentDataLabel > -1 ){
 
       dataLabelIndexes[ labels[i].replace(/[\s\(\)]/g, '') ] = currentDataLabel;  // regex removes spaces and brackets
-
     }
   }
-  console.log('Data labels:', dataLabelIndexes);
   return dataLabelIndexes; 
 
 }; // requestHeaderProcessColumns()
@@ -123,7 +101,6 @@ function reduceData( dataTable, dataLabelIndexes, dataIndex ){
 
   let simplifiedDataTable = [];
   const pivotInputOrder = [ dataLabelIndexes.Row, dataLabelIndexes.Col, dataIndex ];
-  console.log('Input order:', pivotInputOrder);
 
   for( let i=0; i < dataTable.length; i++ ){
 
@@ -134,7 +111,7 @@ function reduceData( dataTable, dataLabelIndexes, dataIndex ){
       if( dataIndex === inputIndex ){ // data value or 1dp
 
         if( dataTable[i][dataIndex].formattedValue === 'Null' ){
-
+          // Use the string from the 'Data String' column to replace the data value since its Null.
           simplifiedDataTable[i][j] = dataTable[i][dataLabelIndexes.DataString].formattedValue;
 
         } else if( typeof dataTable[i][dataIndex].formattedValue === 'number' ){
@@ -151,10 +128,46 @@ function reduceData( dataTable, dataLabelIndexes, dataIndex ){
       j++;
     }
   }
-  console.log('Simple dataTable:', simplifiedDataTable);
   return simplifiedDataTable;
 
 }; // reduceData()
+
+function pivotData( dataTable ){
+
+  // Prepare the header row
+  const columnHeadings = new Set(dataTable.map( ( num, index, arr ) => arr[index][1] ));
+  const colHeadingArray = [ "", ...columnHeadings ];
+
+  // Pivot (like crosstab) the data returned by the API request getSummaryDataAsync() after being stripped back.
+  const rows = dataTable.reduce( ( accumulator, currentValue ) => {
+
+    const currentRowKey = currentValue[0];
+
+    if( !accumulator[currentRowKey] ){
+
+      accumulator[currentRowKey] = [];
+    } 
+    accumulator[currentRowKey].push( currentValue );
+
+    return accumulator;
+
+  }, {});
+  
+  let result = [];
+
+  Object.keys( rows ).map( currentRowKey => {
+
+    const dataValues = rows[currentRowKey].map( array => array[2] );
+
+    result.push( [ currentRowKey, ...dataValues ] );
+
+  });
+
+  // Insert the header row
+  result.unshift( colHeadingArray );
+  return result;
+  
+}; // pivotData()
 
 function renderHtml( pivotTable, tableNumber, unit, vizIndex, set1dp ){ 
   
@@ -208,36 +221,21 @@ function renderHtml( pivotTable, tableNumber, unit, vizIndex, set1dp ){
 
 }; // renderHtml()
 
-function pivotData( dataTable ){
-
-  // Prepare the header row
-  const columnHeadings = new Set(dataTable.map( ( num, index, arr ) => arr[index][1] ));
-  const colHeadingArray = [ "", ...columnHeadings ];
-  console.log('Column headings:', colHeadingArray);
-
-  // Pivot (like crosstab) the data returned by the API request getSummaryDataAsync() after being stripped back.
-  const colIndex = dataTable.reduce( ( acc, currVal ) => {
-
-    let col = currVal[0];
-    if( !acc[col] ){
-      acc[col] = [];
-    } 
-    acc[col].push( currVal );
-
-    return acc;
-
-  }, {});
+export async function filter( filterName, filterValue ){
   
-  let result = [];
-  Object.keys(colIndex).map( col => {
+  // Called by HTML buttons to filter all visualisations and update the data tables.
+  for( let i=0; i < vizWorksheets.length; i++ ){ 
 
-    let values = colIndex[col].map( arr => arr[2] );
-    result.push( [ col, ...values ] );
+    const filterValueArray = Array.of( filterValue );
+    await vizWorksheets[ i ].applyFilterAsync(filterName, filterValueArray, FilterUpdateType.Replace);
+    getTableData( i );
+  };
+}; // filter() Two filters: "Jurisdiction" or "Indigenous Status"
 
-  });
+function onFilterChanged( ev ){
 
-  // Insert the header row
-  result.unshift( colHeadingArray );
-  return result;
-  
-}; // pivotData()
+  // Listener event called if on-chart filters are changed.
+  const vizIndex = ev.target.parentElement.id.replace( 'tableauViz', '' );
+  getTableData( vizIndex );
+
+}; // onFilterChanged()

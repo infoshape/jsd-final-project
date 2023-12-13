@@ -17,9 +17,6 @@ main {
 .datatable td, .datatable th {
   border-right: 1px solid #dee2e6;
 }
-.datatable tr:nth-of-type(even) {
-/* background: #f7f7f7; */
-}
 .datatable td, .datatable th {
 border-right: 1px solid #dee2e6;
 }
@@ -54,7 +51,7 @@ border-right: 1px solid #dee2e6;
 }
 
 .sidebar .nav-link.active {
-  color: rgb(93,96,104); /* #2470dc; */
+  color: rgb(93,96,104);
 }
 
 .sidebar p { 
