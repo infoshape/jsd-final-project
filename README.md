@@ -5,10 +5,10 @@
 - **[App](#app-toc)**
 - **[Overview](#overview-toc)**
 - **[Planning stage](#planning-stage-toc)**
-- **[Screenshot](#screenshots-toc)**
-- **[What I learned](#something-learned-toc)**
+- **[Screenshot](#screenshot-toc)**
+- **[What I learned](#what-i-learned-toc)**
 - **[Other technology](#other-technology-toc)**
-- **[Wishlist/Future features](#wishlist-toc)**
+- **[Wishlist/Future features](#wishlistfuture-features-toc)**
   
 
 ## App [<sup><sup><sup>[TOC]</sup></sup></sup>](#table-of-contents)
