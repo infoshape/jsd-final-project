@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="en" data-bs-theme="auto">
+  <head>
+    <link rel='shortcut icon' href='#'><!-- no favicon error -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.118.2">
+    <title>Tableau visualisations - Test website embed</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <link rel="canonical" href="https://getbootstrap.com/docs/5.3/examples/dashboard/">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3">
+    <link rel="stylesheet" href="./css/style.css">
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js'></script>
+    <script type="module">
+      import { FilterType, SheetType, TableauEventType } from 'https://public.tableau.com/javascripts/api/tableau.embedding.3.latest.js';
+
+      // Ensures the DOM (html) is loaded before trying to use the elements
+      window.addEventListener('DOMContentLoaded', function() {
+        const urlInput = document.getElementById("userInput"),
+              form     = document.getElementById("urlForm");
+            
+        form.addEventListener('submit', getUrl); // On submit btn click, or pressing Enter
+        
+        function getUrl(e) {
+          const tabUrl = urlInput.value;
+          initialiseViz( tabUrl );
+          e.preventDefault(); // Prevent the form from redirecting?
+        }
+      });
+
+      function initialiseViz( vizUrl ) {
+        viz = document.getElementById("viz");
+        viz.src = vizUrl;
+        viz.height = '657px';
+        viz.width = '100%';
+        // viz.hideTabs = true;
+        viz.hideToolbar = true;
+        clearText();
+      }
+
+      // Get the viz object from the HTML web component
+      //const viz = document.querySelector('tableau-viz'); // , tableau-authoring-viz
+      //viz.url = tabUrl;
+      let sheetsInformation;
+      let sizevalstext;
+
+      // window.token is the JWT generated using a Connected App configured with Direct Trust.
+      // The value is generated and is only available when this code executes within the Embedding Playground.
+      // See the Connected Apps documentation (https://sfdc.co/ca-direct) for more information.
+      // See this repository (https://sfdc.co/ca-jwt) for samples in various languages.
+      viz.token = window.token;
+
+      // Wait for the viz to become interactive
+      await new Promise((resolve, reject) => {
+        // Add an event listener to verify the viz becomes interactive
+        viz.addEventListener(TableauEventType.FirstInteractive, () => {
+          console.log('Viz is interactive!');
+          sheetsInformation = viz.workbook.publishedSheetsInfo;
+          const pSI = Array.from(sheetsInformation, (sheetsInformation) => sheetsInformation.name);
+          console.log(pSI);
+          let currentSheetName = viz.workbook.activeSheet.name;
+          console.log(currentSheetName);
+          if ( !( currentSheetName.toLowerCase() === 'select filters' || currentSheetName.toLowerCase() === 'select filter' ) ) {
+            getSumData();
+            getFilters();
+            const sizevals = viz.workbook.activeSheet['_workbookImpl']['_activeSheetImpl']['_sheetInfoImpl']['_sheetSize'];
+            sizevalstext = '<p class="lh-sm"><strong>Dashboard size</strong><br /> <span class="small"><strong>Min</strong><br />' + JSON.stringify(sizevals['minSize']).replaceAll('"', '').replaceAll('{', '').replaceAll('}', '').replaceAll(',', ' ') + '<br /><strong>Max</strong><br />' + JSON.stringify(sizevals['maxSize']).replaceAll('"', '').replaceAll('{', '').replaceAll('}', '').replaceAll(',', ' ') + '</span></p>';
+            if ( sizevalstext.indexOf('820') < 0 ) {
+                $('#viz0 .warn').append("&bull; Please check that the maxSize width of the dashboard is set to 820.").css('display', 'inline-block');
+            }
+          }
+          resolve();
+        });
+
+        viz.addEventListener(TableauEventType.VizLoadError, (error) => {
+          const message = JSON.parse(error.detail.message);
+          const errorMessage = JSON.parse(message.errorMessage);
+
+          const displayMessage = `ca-error-${errorMessage.result.errors[0].code}`;
+          reject(displayMessage);
+        });
+
+        viz.addEventListener(TableauEventType.TabSwitched, ( ev ) => {
+          const oldSht = ev.detail.oldSheetName;
+          const newSht = ev.detail.newSheetName;
+          console.log('old sheet', oldSht);
+          console.log('new sheet', newSht);
+          clearText();
+          if ( !( newSht.toLowerCase() === 'select filters' || newSht.toLowerCase() === 'select filter' ) ) {
+            getSumData();
+            getFilters();
+          }
+          let newSheet = sheetsInformation.find(sheet => sheet.name == newSht);
+          const newUrl = newSheet.url;
+          console.log(newUrl);
+          $("#userInput").val(newUrl); // wrtie the new URL back into the form input field
+        });
+      });
+
+      let dashboard;
+      let worksheet;
+      if (viz.workbook.activeSheet.sheetType === SheetType.Dashboard) {
+        dashboard = viz.workbook.activeSheet;
+
+        // Provide the name of the worksheet you want to use from the dashboard
+        worksheet = dashboard.worksheets.find((ws) => ws.name === 'Figure SE5a.2');
+      } else {
+        // Active sheet is already a worksheet
+        worksheet = viz.workbook.activeSheet;
+      }
+
+      // *** Insert your code below! ***
+
+      try {
+        // getFiltersAsync (Dashboard)
+
+        // For more information, see
+        // https://help.tableau.com/current/api/embedding_api/en-us/docs/embedding_api_filter.html
+
+        const dashFilters = await dashboard.getFiltersAsync();
+        console.log('Available dashboard filters:');
+        console.log(dashFilters);
+
+        // show # and names of categorical filters in the Console
+        const categoricalFilters = dashFilters.filter((df) => df.filterType === FilterType.Categorical);
+        console.log(categoricalFilters);
+
+        console.log(`The number of categorical filters: ${categoricalFilters.length}
+        Filters: ${categoricalFilters.map((s) => s.fieldName)}`);
+      } catch (e) {
+        console.error(e.toString());
+      }
+
+      async function getSumData( ){
+
+        //const currentWorksheet = vizWorksheets[ vizIndex ];
+
+        // Header row
+        const dataHeader = await viz.workbook.activeSheet.worksheets[0].getSummaryColumnsInfoAsync();
+
+        // Data column names have been prefixed with 'Grp'(optional), 'Row', 'Col' to identify inputs to the pivot function.
+        // The data value '1dp' (1 decimal place) has precedence over 'Data Value' when both are present.
+        let dataLabelIndexes = {}; 
+        const dval = 'Data[ _]Value';
+        const labels = ["Grp", "Row", "Col", "Data String", "Unit", "Table Number", "(Data Value)", "Value (1dp)"];
+        const dataLabels  = dataHeader.map( h => h.fieldName );
+        console.log(dataLabels);
+        for( let i=0; i < labels.length; i++ ){ // Find the array indexes of all the important columns.
+          
+          const currentDataLabel = dataLabels.findIndex( l => l.includes( labels[i] ) );
+
+          if( currentDataLabel > -1 ){
+
+            dataLabelIndexes[ labels[i].replace(/[\s\(\)]/g, '') ] = currentDataLabel;  // regex removes spaces and brackets
+          }
+        }
+        //return dataLabelIndexes; 
+
+        if ( dataLabels.indexOf('_') != -1 ) { // underscores being used in col headings
+          $('#viz0 .info').append('&bull; Column heading/s using underscore').css('display', 'inline-block');
+        }
+        if ( dataLabels.indexOf('Unit') == -1 ) {
+          $('#viz0 #missing').append('&bull; Unit ').css('display', 'inline-block');
+        }
+        if ( dataLabels.indexOf('Table Number') == -1 ) {
+          $('#viz0 #missing').append('&bull; Table Number ').css('display', 'inline-block');
+        }
+        if ( dataLabels.findIndex(el => el.includes('Row')) == -1 ) {
+          $('#viz0 #missing').append('&bull; Row&hellip; ').css('display', 'inline-block');
+        }
+        if ( dataLabels.reduce((a, str) => a + str.includes('Row'), 0) > 1 ) {
+          $('#viz0 .warn').append('&bull; Multiple Row&hellip; ').css('display', 'inline-block');
+        }
+        if ( dataLabels.findIndex(el => el.includes('Col')) == -1 ) {
+          $('#viz0 #missing').append('&bull; Col&hellip; ').css('display', 'inline-block');
+        }
+        if ( dataLabels.reduce((a, str) => a + str.includes('Col'), 0) > 1 ) {
+          $('#viz0 .warn').append('&bull; Multiple Col&hellip; ').css('display', 'inline-block');
+        }
+        if ( dataLabels.reduce((a, str) => a + str.includes('Grp'), 0) > 1 ) {
+          $('#viz0 .warn').append('&bull; Multiple Grp&hellip; ').css('display', 'inline-block');
+        }
+        if ( dataLabels.indexOf('Data String') == -1 ) {
+          $('#viz0 #missing').append('&bull; Data String ').css('display', 'inline-block');
+        }
+
+        // Request header and data, process headers
+        //const dataLabelIndexes = await requestHeaderProcessColumns( currentWorksheet );
+        //console.log(dataLabelIndexes);
+        const dataTable = await requestData( viz.workbook.activeSheet ); 
+        console.log(dataTable);
+        // Store off specific table values: tableNumber, unit, dataIndex, whether the data has 1 decimal place.
+        //const tableNumber = dataTable[0][dataLabelIndexes.TableNumber].formattedValue;
+        //const unit = dataTable[0][dataLabelIndexes.Unit].formattedValue;
+        //const dataIndex = ( dataLabelIndexes.Value1dp > -1  ) ? dataLabelIndexes.Value1dp : dataLabelIndexes.DataValue;
+        //const set1dp = ( dataLabelIndexes.Value1dp > -1  ) ? true : false;
+
+        // Data table reduce size/columns, pivot and render.
+        //const simplifiedDataTable = reduceData( dataTable, dataLabelIndexes, dataIndex );
+        //const pivotTable = pivotData( simplifiedDataTable );
+        renderSumData( dataTable, dataHeader );
+
+      }; // getSumData()
+
+      async function requestData( worksheet ){
+
+        const summaryDataOptions = {
+
+            maxRows: 0,
+            ignoreAliases: false,
+            ignoreSelection: true,
+            includeDataValuesOption: 'only-formatted-values',
+        };
+
+        const summaryData = await worksheet.worksheets[0].getSummaryDataAsync(summaryDataOptions);
+        return summaryData.data;
+
+      }; // requestData()
+
+      function renderSumData( tableData, dataHeader ){ 
+      console.log(tableData);
+        const rowHeaders = [""];
+        let result = "<table class='table admindata mb-0'>";
+        result += "<caption style='color:#212529;'>Tabviz summary data</caption><thead>";
+
+      console.log(dataHeader);
+        // Insert the header row
+        tableData.unshift( dataHeader );
+
+        tableData.forEach(( row, rowIndex ) => {
+
+          // Table header
+          if( rowIndex === 0 ){  
+
+            result += "<tr>";
+            row.forEach( ( item, colIndex ) => {
+                result += "<th scope='col'>" + item['_fieldName'].toString() + "</th>";
+            });
+            result += "</tr></thead><tbody>";
+
+            // Table body
+          } else {  
+
+            result += "<tr>";
+            row.forEach( ( item, colIndex ) => {
+
+                result += "<td class='text-center'>" + item['_formattedValue'].toString() + "</td>";
+
+            });
+            result += "</tr>";
+          }
+        });
+        result += "</tbody></table>";
+        
+        $( '#dataTable0' ).html( result );
+
+      }; // renderSumData()
+
+      function getFilters() {
+
+        let filterstext ='';
+        let sheetstext = '';
+        let result = '';
+
+        //const currentWorksheet = vizWorksheets[ vizIndex ];
+
+        viz.workbook.activeSheet.getFiltersAsync()
+          .then(function(filters) {
+          console.log("get filters promise returned");
+          filterstext = '<p class="mb-0"><strong>Filters</strong></p>';
+          // Iterate (using ES6 style) through the filters retrieving properties
+          console.log(filters);
+          for ( const filter of filters ) {
+              let fname = filter.fieldName;
+              let ftype = filter.filterType;
+              let fvalue = '';
+              //let fval = '';
+              if ( fname !== 'Data Value') {
+
+                let fvals = filter.appliedValues;
+                //for (fval of fvals) {
+                for (let i = 0; i < fvals.length; i++) {
+                  fvalue += Object.values(fvals[i])[2];
+                  if( i < fvals.length-1) {
+                    fvalue += ' | ';
+                  }
+                }
+                  
+                //}
+                  /* viz.getFilterValuesAsync(filter).then(function(appliedValues) {
+                      // Do something with the appliedValues array
+                      console.log(appliedValues);
+                  }); */
+                  //values = filter.getAppliedValues();
+                  //fvalue = filter['_appliedValues'][0]['_formattedValue'];
+                  //fvalue = 'test';
+              } else {
+                  fvalue = "<span id='warning' class='badge bg-warning'><i class='fa fa-exclamation-triangle' aria-hidden='true'></i> Warning: Unable to determine applied values for filter 'Data Value'</span>";
+              }
+
+              /* v3 
+              tableau.viz.getFilterValuesAsync(filterName).then(function(appliedValues) {
+                  // Do something with the appliedValues array
+                  console.log(appliedValues);
+              }); */
+
+              //    let valuetest = print_r(filter.$a); // Also works but less reliable. Used to be $9
+              let filtersVal = '<p class="small"><strong> ' + fname + ' </strong>[' + ftype + ']: ' + fvalue + '</p>';
+              //document.getElementById('output').innerHTML = 'Values selected: ' + JSON.stringify(values);
+              //$("#" + vizContainer + " .underlyingdata").text(filtersVal);
+              //$(".underlyingdata").text(filtersVal);
+              filterstext += filtersVal;
+          }
+          $('#filtersdata').html(sizevalstext).append(filterstext);
+        });
+      }
+
+      function clearText() {
+        const vizElement = document.getElementById('viz');
+        const vizWrapper = document.getElementById('tableauViz');
+        if( vizWrapper.innerHTML !== "" ){
+          // Remove the viz element - Not needed now
+          // vizElement.parentNode.removeChild(vizElement);
+          $('#missing').html("<i class='fa fa-exclamation-triangle' aria-hidden='true'></i> Missing: ").css('display', 'none');
+          $('.warn').html("<i class='fa fa-exclamation-triangle' aria-hidden='true'></i> Warning: ").css('display', 'none');
+          $('.info').html("<i class='fa fa-info-circle' aria-hidden='true'></i> Information: ").css('display', 'none');
+        }
+        const filterWrapper = document.getElementById('filtersdata');
+        filterWrapper.innerHTML = '';
+        const datatableWrapper = document.getElementById('dataTable0');
+        datatableWrapper.innerHTML = '';
+      }
+
+    </script>
+
+    <style>
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+
+      .b-example-divider {
+        width: 100%;
+        height: 3rem;
+        background-color: rgba(0, 0, 0, .1);
+        border: solid rgba(0, 0, 0, .15);
+        border-width: 1px 0;
+        box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);
+      }
+
+      .b-example-vr {
+        flex-shrink: 0;
+        width: 1.5rem;
+        height: 100vh;
+      }
+
+      .bi {
+        vertical-align: -.125em;
+        fill: currentColor;
+      }
+
+      .nav-scroller {
+        position: relative;
+        z-index: 2;
+        height: 2.75rem;
+        overflow-y: hidden;
+      }
+
+      .nav-scroller .nav {
+        display: flex;
+        flex-wrap: nowrap;
+        padding-bottom: 1rem;
+        margin-top: -1px;
+        overflow-x: auto;
+        text-align: center;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .btn-bd-primary {
+        --bd-violet-bg: #712cf9;
+        --bd-violet-rgb: 112.520718, 44.062154, 249.437846;
+
+        --bs-btn-font-weight: 600;
+        --bs-btn-color: var(--bs-white);
+        --bs-btn-bg: var(--bd-violet-bg);
+        --bs-btn-border-color: var(--bd-violet-bg);
+        --bs-btn-hover-color: var(--bs-white);
+        --bs-btn-hover-bg: #6528e0;
+        --bs-btn-hover-border-color: #6528e0;
+        --bs-btn-focus-shadow-rgb: var(--bd-violet-rgb);
+        --bs-btn-active-color: var(--bs-btn-hover-color);
+        --bs-btn-active-bg: #5a23c8;
+        --bs-btn-active-border-color: #5a23c8;
+      }
+
+      .bd-mode-toggle {
+        z-index: 1500;
+      }
+
+      .bd-mode-toggle .dropdown-menu .active .bi {
+        display: block !important;
+      }
+    </style>
+
+    <!-- Custom styles for this template -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.min.css" rel="stylesheet">
+  </head>
+  <body>  
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
+    
+<svg xmlns="http://www.w3.org/2000/svg" class="d-none">
+  <symbol id="chevron-right" viewBox="0 0 16 16">
+    <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+  </symbol>
+  <symbol id="gear-wide-connected" viewBox="0 0 16 16">
+    <path d="M7.068.727c.243-.97 1.62-.97 1.864 0l.071.286a.96.96 0 0 0 1.622.434l.205-.211c.695-.719 1.888-.03 1.613.931l-.08.284a.96.96 0 0 0 1.187 1.187l.283-.081c.96-.275 1.65.918.931 1.613l-.211.205a.96.96 0 0 0 .434 1.622l.286.071c.97.243.97 1.62 0 1.864l-.286.071a.96.96 0 0 0-.434 1.622l.211.205c.719.695.03 1.888-.931 1.613l-.284-.08a.96.96 0 0 0-1.187 1.187l.081.283c.275.96-.918 1.65-1.613.931l-.205-.211a.96.96 0 0 0-1.622.434l-.071.286c-.243.97-1.62.97-1.864 0l-.071-.286a.96.96 0 0 0-1.622-.434l-.205.211c-.695.719-1.888.03-1.613-.931l.08-.284a.96.96 0 0 0-1.186-1.187l-.284.081c-.96.275-1.65-.918-.931-1.613l.211-.205a.96.96 0 0 0-.434-1.622l-.286-.071c-.97-.243-.97-1.62 0-1.864l.286-.071a.96.96 0 0 0 .434-1.622l-.211-.205c-.719-.695-.03-1.888.931-1.613l.284.08a.96.96 0 0 0 1.187-1.186l-.081-.284c-.275-.96.918-1.65 1.613-.931l.205.211a.96.96 0 0 0 1.622-.434l.071-.286zM12.973 8.5H8.25l-2.834 3.779A4.998 4.998 0 0 0 12.973 8.5zm0-1a4.998 4.998 0 0 0-7.557-3.779l2.834 3.78h4.723zM5.048 3.967c-.03.021-.058.043-.087.065l.087-.065zm-.431.355A4.984 4.984 0 0 0 3.002 8c0 1.455.622 2.765 1.615 3.678L7.375 8 4.617 4.322zm.344 7.646.087.065-.087-.065z"/>
+  </symbol>
+  <symbol id="house-fill" viewBox="0 0 16 16">
+    <path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L8 2.207l6.646 6.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.707 1.5Z"/>
+    <path d="m8 3.293 6 6V13.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 13.5V9.293l6-6Z"/>
+  </symbol>
+</svg>
+
+<header class="navbar sticky-top bg-dark flex-md-nowrap p-0 shadow" data-bs-theme="dark">
+  <div class="row py-2">
+    <div class="col-md-3 pt-2">
+      <a class="navbar-brand me-0 py-1 px-3 fs-6 text-white" href="#">Tableau visualisations</a>
+    </div><!-- col-3 -->
+    <div class="col-md-5">
+      <div class="btn-group mt-1 ms-0 mb-1" role="group" aria-label="Radio toggle button group for indigenous status">
+        <input type="radio" class="btn-check" name="indigenousradio" id="radio1" autocomplete="off" value="Aboriginal and Torres Strait Islander people" checked="" onchange="filter( 'Indigenous Status', value );">
+        <label class="btn btn-outline-light btn-sm" for="radio1">Aboriginal and Torres Strait Islander</label>
+        <input type="radio" class="btn-check" name="indigenousradio" id="radio2" autocomplete="off" value="Non-Indigenous people" onchange="filter( 'Indigenous Status', value );">
+        <label class="btn btn-outline-light btn-sm" for="radio2">Non-Indigenous</label>
+      </div>
+    </div><!-- col-5 -->
+    <div class="col-md-4">
+      <div id="jurisButtons" class="btn-group mt-1" role="group" aria-label="Radio toggle button group for jurisdiction">
+        <input type="radio" class="btn-check" name="jurisradio" id="btnradio0" autocomplete="off" value="Aust" checked="" onchange="filter( 'Jurisdiction', value );"><label class="btn btn-outline-light btn-sm" for="btnradio0">Aust</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio1" autocomplete="off" value="NSW" onchange="filter( 'Jurisdiction', value );"><label class="btn btn-outline-light btn-sm" for="btnradio1">NSW</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio2" autocomplete="off" value="Vic" onchange="filter( 'Jurisdiction', value );"><label class="btn btn-outline-light btn-sm" for="btnradio2">Vic</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio3" autocomplete="off" value="Qld" onchange="filter( 'Jurisdiction', value );"><label class="btn btn-outline-light btn-sm" for="btnradio3">Qld</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio4" autocomplete="off" value="WA" onchange="filter( 'Jurisdiction', value );"><label class="btn btn-outline-light btn-sm" for="btnradio4">WA</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio5" autocomplete="off" value="SA" onchange="filter( 'Jurisdiction', value );"><label class="btn btn-outline-light btn-sm" for="btnradio5">SA</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio6" autocomplete="off" value="Tas" onchange="filter( 'Jurisdiction', value );"><label class="btn btn-outline-light btn-sm" for="btnradio6">Tas</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio7" autocomplete="off" value="ACT" onchange="filter( 'Jurisdiction', value );"><label class="btn btn-outline-light btn-sm" for="btnradio7">ACT</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio8" autocomplete="off" value="NT" onchange="filter( 'Jurisdiction', value );"><label class="btn btn-outline-light btn-sm" for="btnradio8">NT</label>
+      </div>
+    </div><!-- col-4 -->
+  </div>
+
+  <ul class="navbar-nav flex-row d-md-none">
+    <li class="nav-item text-nowrap">
+      <button class="nav-link px-3 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSearch" aria-controls="navbarSearch" aria-expanded="false" aria-label="Toggle search">
+        <svg class="bi"><use xlink:href="#search"/></svg>
+      </button>
+    </li>
+    <li class="nav-item text-nowrap">
+      <button class="nav-link px-3 text-white" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu" aria-expanded="false" aria-label="Toggle navigation">
+        <svg class="bi"><use xlink:href="#list"/></svg>
+      </button>
+    </li>
+  </ul>
+
+  <div id="navbarSearch" class="navbar-search w-100 collapse">
+    <input class="form-control w-100 rounded-0 border-0" type="text" placeholder="Search" aria-label="Search">
+  </div>
+</header>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="sidebar border border-right col-md-3 col-lg-2 p-0 bg-body-tertiary">
+      <div class="offcanvas-md offcanvas-end bg-body-tertiary" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel">
+        <div class="offcanvas-header">
+          <h5 class="offcanvas-title" id="sidebarMenuLabel">Tableau visualisations</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebarMenu" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body d-md-flex flex-column p-0 pt-lg-3 overflow-y-auto">
+          <ul class="nav flex-column">
+            <li class="nav-item">
+              <a class="nav-link d-flex align-items-center gap-2 active" aria-current="page" href="#">
+                <svg class="bi"><use xlink:href="#house-fill"/></svg>
+                Test tabviz embed
+              </a>
+            </li>
+          </ul>
+
+          <hr class="my-3">
+
+          <!--<p style="margin-top: 30rem">This is a Bootstrap 5 example template: <a href="https://getbootstrap.com/docs/5.3/examples/dashboard">Dashboard</a>, which has been customised.</p>-->
+        </div>
+      </div>
+    </div>
+
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Test/diagnose tabviz for embed and datatable</h1>
+      </div>
+      <form id="urlForm">
+        <input class="mb-2" id="userInput" name="url" placeholder="Enter Tableau viz url or clear the input and click here to choose from previously entered urls" type="text" size="75" autocomplete="on"></input>
+        <button type="submit" class="submit-vizurl btn btn-success btn-sm text-white" style="margin-top: -4px;">Submit tabviz URL</button>
+      </form>
+      <div id="viz0">
+        <div class="row">
+          <div class="col-9">
+            <span id='missing' class='badge bg-danger' style='display:none;'><i
+                class='fa fa-exclamation-triangle' aria-hidden='true'></i> Missing: 
+            </span>
+            <span class='warn badge bg-warning text-dark' style='display:none;'><i   
+                class='fa fa-exclamation-triangle' aria-hidden='true'></i> Warning: 
+            </span>
+            <span class='info badge bg-info text-dark' style='display:none;'><i
+                class='fa fa-info-circle' aria-hidden='true'></i> Information: 
+            </span>
+            <div class="mt-2" id="tableauViz" width="100%">
+              <tableau-viz id="viz"></tableau-viz>
+            </div>
+            <!--<tableau-viz
+              device="desktop"
+              show-tabs
+              toolbar="bottom"
+            >
+            </tableau-viz>
+            <div id="tableauViz"> src="https://public.tableau.com/views/CtG05a_SchoolAttendance_Supp_embargo_LFTest/FigureSE5a_2"
+              <tableau-viz></tableau-viz>
+            </div>-->
+          </div>
+          <div class="col-3">
+            <div id="filtersdata"></div>
+          </div>
+        </div>
+      </div>
+      <div id="dataTable0"></div>
+      <!--<div>
+        <button id="getData" type="button" class="btn btn-sm btn-outline-secondary">Get Data</button>
+      </div>-->
+      <!-- Placeholder for the Underlying Data.  -->
+      <div id="dataTarget"></div>
+      </div>
+    </main>
+  </div>
+</div>
+  </body>
+</html>

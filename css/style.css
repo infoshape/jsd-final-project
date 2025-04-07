@@ -77,3 +77,32 @@ border-right: 1px solid #dee2e6;
 .navbar .form-control {
   padding: .75rem 1rem;
 }
+
+/*
+ * Tabviz admin
+ */
+
+ table caption {
+  font-weight: 700;
+  margin-bottom: 0.4em;
+  text-align: left;
+  margin-top: 10px;
+  caption-side: top;
+  color: #775538;
+}
+table.admindata th {
+  line-height: 1;
+  writing-mode: vertical-rl;
+  vertical-align: middle;
+  transform: scale(-1);
+  height: 130px;
+}
+table.admindata td, table.admindata th {
+  font-size: 0.7em;
+  padding: 0 !important;
+  border-right: 1px solid #ccc;
+  line-height: 1.2;
+}
+.container {
+  max-width: unset;
+}
