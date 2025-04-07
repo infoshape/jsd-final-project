@@ -5,11 +5,10 @@
 - **[App](#app-toc)**
 - **[Overview](#overview-toc)**
 - **[Planning stage](#planning-stage-toc)**
-- **[Screenshot](#screenshots-toc)**
-- **[Technical hurdle](#technical-hurdle-toc)**
-- **[What I learned](#something-learned-toc)**
+- **[Screenshot](#screenshot-toc)**
+- **[What I learned](#what-i-learned-toc)**
 - **[Other technology](#other-technology-toc)**
-- **[Wishlist/Future features](#wishlist-toc)**
+- **[Wishlist/Future features](#wishlistfuture-features-toc)**
   
 
 ## App [<sup><sup><sup>[TOC]</sup></sup></sup>](#table-of-contents)
@@ -31,14 +30,10 @@ The following illustration shows the structure of the underlying data returned b
 
 ![App screenshot](screenshot1.png?raw=true "Capture showing HTML filter buttons, viz and data table")
 
-## Technical hurdle [<sup><sup><sup>[TOC]</sup></sup></sup>](#table-of-contents)
-
-The biggest hurdle was getting my head around the code required to pivot the data for presentation in the table.
-
 ## What I learned [<sup><sup><sup>[TOC]</sup></sup></sup>](#table-of-contents)
 
 - Its a little different handling a JavaScript module, namely, the Tableau JavaScript API **v3**.
-- Using Async/await is better/easier (for me) to use than Promises.
+- Using Async/await is better/easier to use than Promises.
 
 ## Other technology [<sup><sup><sup>[TOC]</sup></sup></sup>](#table-of-contents)
 
