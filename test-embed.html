@@ -14,92 +14,78 @@
     <link rel="stylesheet" href="./css/style.css">
     <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js'></script>
     <script type="module">
-      import { FilterType, SheetType, TableauEventType } from 'https://public.tableau.com/javascripts/api/tableau.embedding.3.latest.js';
+      import { TableauViz, TableauEventType, FilterType, SheetType } from 'https://public.tableau.com/javascripts/api/tableau.embedding.3.latest.js';
 
+      let viz;
+      let sheetsInformation;
+      let sizevalstext;
       // Ensures the DOM (html) is loaded before trying to use the elements
       window.addEventListener('DOMContentLoaded', function() {
         const urlInput = document.getElementById("userInput"),
               form     = document.getElementById("urlForm");
             
-        form.addEventListener('submit', getUrl); // On submit btn click, or pressing Enter
-        
-        function getUrl(e) {
-          const tabUrl = urlInput.value;
-          initialiseViz( tabUrl );
+        form.addEventListener('submit', initialiseViz); // On submit btn click, or pressing Enter
+
+        function initialiseViz( e ) {
+
+          viz = new TableauViz();
+
+          const onFirstInteractive = () => {
+
+            console.log('Viz is interactive!');
+              sheetsInformation = viz.workbook.publishedSheetsInfo;
+              const pSI = Array.from(sheetsInformation, (sheetsInformation) => sheetsInformation.name);
+              console.log(pSI);
+              let currentSheetName = viz.workbook.activeSheet.name;
+              console.log(currentSheetName);
+              if ( !( currentSheetName.toLowerCase() === 'select filters' || currentSheetName.toLowerCase() === 'select filter' ) ) {
+                getSumData();
+                getFilters();
+                const sizevals = viz.workbook.activeSheet['_workbookImpl']['_activeSheetImpl']['_sheetInfoImpl']['_sheetSize'];
+                sizevalstext = '<p class="lh-sm"><strong>Dashboard size</strong><br /> <span class="small"><strong>Min</strong><br />' + JSON.stringify(sizevals['minSize']).replaceAll('"', '').replaceAll('{', '').replaceAll('}', '').replaceAll(',', ' ') + '<br /><strong>Max</strong><br />' + JSON.stringify(sizevals['maxSize']).replaceAll('"', '').replaceAll('{', '').replaceAll('}', '').replaceAll(',', ' ') + '</span></p>';
+                if ( sizevalstext.indexOf('820') < 0 ) {
+                    $('#viz0 .warn').append("&bull; Please check that the maxSize width of the dashboard is set to 820.").css('display', 'inline-block');
+                }
+              }
+          };
+
+          viz.addEventListener( TableauEventType.FirstInteractive, onFirstInteractive );
+          viz.addEventListener(TableauEventType.TabSwitched, ( ev ) => {
+              const oldSht = ev.detail.oldSheetName;
+              const newSht = ev.detail.newSheetName;
+              console.log('old sheet', oldSht);
+              console.log('new sheet', newSht);
+              clearText();
+              if ( !( newSht.toLowerCase() === 'select filters' || newSht.toLowerCase() === 'select filter' ) ) {
+                getSumData();
+                getFilters();
+              }
+              let newSheet = sheetsInformation.find(sheet => sheet.name == newSht);
+              const newUrl = newSheet.url;
+              console.log(newUrl);
+              $("#userInput").val(newUrl); // wrtie the new URL back into the form input field
+            });
+          //viz.addEventListener( TableauEventType.FilterChanged, onFilterChanged );
+          viz.src = urlInput.value;
+          document.getElementById( 'tableauViz' ).appendChild(viz);
+
           e.preventDefault(); // Prevent the form from redirecting?
-        }
+        } // initialiseViz()
       });
 
-      function initialiseViz( vizUrl ) {
-        viz = document.getElementById("viz");
+      /* function initialiseViz( vizUrl ) {
+        viz = new TableauViz();
+        //viz = document.getElementById("viz");
         viz.src = vizUrl;
         viz.height = '657px';
         viz.width = '100%';
         // viz.hideTabs = true;
         viz.hideToolbar = true;
+        document.getElementById( 'tableauViz' ).appendChild(viz);
         clearText();
-      }
+      } */
 
-      // Get the viz object from the HTML web component
-      //const viz = document.querySelector('tableau-viz'); // , tableau-authoring-viz
-      //viz.url = tabUrl;
-      let sheetsInformation;
-      let sizevalstext;
-
-      // window.token is the JWT generated using a Connected App configured with Direct Trust.
-      // The value is generated and is only available when this code executes within the Embedding Playground.
-      // See the Connected Apps documentation (https://sfdc.co/ca-direct) for more information.
-      // See this repository (https://sfdc.co/ca-jwt) for samples in various languages.
-      viz.token = window.token;
-
-      // Wait for the viz to become interactive
-      await new Promise((resolve, reject) => {
-        // Add an event listener to verify the viz becomes interactive
-        viz.addEventListener(TableauEventType.FirstInteractive, () => {
-          console.log('Viz is interactive!');
-          sheetsInformation = viz.workbook.publishedSheetsInfo;
-          const pSI = Array.from(sheetsInformation, (sheetsInformation) => sheetsInformation.name);
-          console.log(pSI);
-          let currentSheetName = viz.workbook.activeSheet.name;
-          console.log(currentSheetName);
-          if ( !( currentSheetName.toLowerCase() === 'select filters' || currentSheetName.toLowerCase() === 'select filter' ) ) {
-            getSumData();
-            getFilters();
-            const sizevals = viz.workbook.activeSheet['_workbookImpl']['_activeSheetImpl']['_sheetInfoImpl']['_sheetSize'];
-            sizevalstext = '<p class="lh-sm"><strong>Dashboard size</strong><br /> <span class="small"><strong>Min</strong><br />' + JSON.stringify(sizevals['minSize']).replaceAll('"', '').replaceAll('{', '').replaceAll('}', '').replaceAll(',', ' ') + '<br /><strong>Max</strong><br />' + JSON.stringify(sizevals['maxSize']).replaceAll('"', '').replaceAll('{', '').replaceAll('}', '').replaceAll(',', ' ') + '</span></p>';
-            if ( sizevalstext.indexOf('820') < 0 ) {
-                $('#viz0 .warn').append("&bull; Please check that the maxSize width of the dashboard is set to 820.").css('display', 'inline-block');
-            }
-          }
-          resolve();
-        });
-
-        viz.addEventListener(TableauEventType.VizLoadError, (error) => {
-          const message = JSON.parse(error.detail.message);
-          const errorMessage = JSON.parse(message.errorMessage);
-
-          const displayMessage = `ca-error-${errorMessage.result.errors[0].code}`;
-          reject(displayMessage);
-        });
-
-        viz.addEventListener(TableauEventType.TabSwitched, ( ev ) => {
-          const oldSht = ev.detail.oldSheetName;
-          const newSht = ev.detail.newSheetName;
-          console.log('old sheet', oldSht);
-          console.log('new sheet', newSht);
-          clearText();
-          if ( !( newSht.toLowerCase() === 'select filters' || newSht.toLowerCase() === 'select filter' ) ) {
-            getSumData();
-            getFilters();
-          }
-          let newSheet = sheetsInformation.find(sheet => sheet.name == newSht);
-          const newUrl = newSheet.url;
-          console.log(newUrl);
-          $("#userInput").val(newUrl); // wrtie the new URL back into the form input field
-        });
-      });
-
-      let dashboard;
+      /* let dashboard;
       let worksheet;
       if (viz.workbook.activeSheet.sheetType === SheetType.Dashboard) {
         dashboard = viz.workbook.activeSheet;
@@ -131,7 +117,7 @@
         Filters: ${categoricalFilters.map((s) => s.fieldName)}`);
       } catch (e) {
         console.error(e.toString());
-      }
+      } */
 
       async function getSumData( ){
 
@@ -518,7 +504,7 @@
                 class='fa fa-info-circle' aria-hidden='true'></i> Information: 
             </span>
             <div class="mt-2" id="tableauViz" width="100%">
-              <tableau-viz id="viz"></tableau-viz>
+              
             </div>
             <!--<tableau-viz
               device="desktop"
