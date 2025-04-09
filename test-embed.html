@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="./css/style.css">
     <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js'></script>
     <script type="module">
-      import { TableauViz, TableauEventType, FilterType, SheetType } from 'https://public.tableau.com/javascripts/api/tableau.embedding.3.latest.js';
+      import { TableauViz, TableauEventType, FilterType, FilterUpdateType, SheetType } from 'https://public.tableau.com/javascripts/api/tableau.embedding.3.latest.js';
 
       let viz;
       let sheetsInformation;
@@ -26,45 +26,60 @@
             
         form.addEventListener('submit', initialiseViz); // On submit btn click, or pressing Enter
 
+        let indigWrapper = document.getElementById('indigButtons');
+        let jurisWrapper = document.getElementById('jurisButtons');
+
+        indigWrapper.addEventListener('click', ( ev ) => {
+          if(ev.target.tagName === 'INPUT') {
+            const indigValue = ev.target.defaultValue;
+            filter( 'Indigenous Status', indigValue );
+          }
+        });
+        jurisWrapper.addEventListener('click', ( ev ) => {
+          if(ev.target.tagName === 'INPUT') {
+            const jurisValue = ev.target.defaultValue;
+            filter( 'Jurisdiction', jurisValue );
+          }
+        });
+
         function initialiseViz( e ) {
 
           viz = new TableauViz();
 
           const onFirstInteractive = () => {
 
-            console.log('Viz is interactive!');
-              sheetsInformation = viz.workbook.publishedSheetsInfo;
-              const pSI = Array.from(sheetsInformation, (sheetsInformation) => sheetsInformation.name);
-              console.log(pSI);
-              let currentSheetName = viz.workbook.activeSheet.name;
-              console.log(currentSheetName);
-              if ( !( currentSheetName.toLowerCase() === 'select filters' || currentSheetName.toLowerCase() === 'select filter' ) ) {
-                getSumData();
-                getFilters();
-                const sizevals = viz.workbook.activeSheet['_workbookImpl']['_activeSheetImpl']['_sheetInfoImpl']['_sheetSize'];
-                sizevalstext = '<p class="lh-sm"><strong>Dashboard size</strong><br /> <span class="small"><strong>Min</strong><br />' + JSON.stringify(sizevals['minSize']).replaceAll('"', '').replaceAll('{', '').replaceAll('}', '').replaceAll(',', ' ') + '<br /><strong>Max</strong><br />' + JSON.stringify(sizevals['maxSize']).replaceAll('"', '').replaceAll('{', '').replaceAll('}', '').replaceAll(',', ' ') + '</span></p>';
-                if ( sizevalstext.indexOf('820') < 0 ) {
-                    $('#viz0 .warn').append("&bull; Please check that the maxSize width of the dashboard is set to 820.").css('display', 'inline-block');
-                }
+            sheetsInformation = viz.workbook.publishedSheetsInfo;
+            const pSI = Array.from(sheetsInformation, (sheetsInformation) => sheetsInformation.name);
+            console.log(pSI);
+            let currentSheetName = viz.workbook.activeSheet.name;
+            console.log(currentSheetName);
+            if ( !( currentSheetName.toLowerCase() === 'select filters' || currentSheetName.toLowerCase() === 'select filter' ) ) {
+              getSumData();
+              getFilters();
+              const sizevals = viz.workbook.activeSheet['_workbookImpl']['_activeSheetImpl']['_sheetInfoImpl']['_sheetSize'];
+              sizevalstext = '<p class="lh-sm"><strong>Dashboard size</strong><br /> <span class="small"><strong>Min</strong><br />' + JSON.stringify(sizevals['minSize']).replaceAll('"', '').replaceAll('{', '').replaceAll('}', '').replaceAll(',', ' ') + '<br /><strong>Max</strong><br />' + JSON.stringify(sizevals['maxSize']).replaceAll('"', '').replaceAll('{', '').replaceAll('}', '').replaceAll(',', ' ') + '</span></p>';
+              if ( sizevalstext.indexOf('820') < 0 ) {
+                  $('#viz0 .warn').append("&bull; Please check that the maxSize width of the dashboard is set to 820.").css('display', 'inline-block');
               }
+            }
           };
 
           viz.addEventListener( TableauEventType.FirstInteractive, onFirstInteractive );
           viz.addEventListener(TableauEventType.TabSwitched, ( ev ) => {
-              const oldSht = ev.detail.oldSheetName;
-              const newSht = ev.detail.newSheetName;
-              console.log('old sheet', oldSht);
-              console.log('new sheet', newSht);
-              clearText();
-              if ( !( newSht.toLowerCase() === 'select filters' || newSht.toLowerCase() === 'select filter' ) ) {
-                getSumData();
-                getFilters();
-              }
-              let newSheet = sheetsInformation.find(sheet => sheet.name == newSht);
-              const newUrl = newSheet.url;
-              console.log(newUrl);
-              $("#userInput").val(newUrl); // wrtie the new URL back into the form input field
-            });
+            const oldSht = ev.detail.oldSheetName;
+            const newSht = ev.detail.newSheetName;
+            console.log('old sheet', oldSht);
+            console.log('new sheet', newSht);
+            clearText();
+            if ( !( newSht.toLowerCase() === 'select filters' || newSht.toLowerCase() === 'select filter' ) ) {
+              getSumData();
+              getFilters();
+            }
+            let newSheet = sheetsInformation.find(sheet => sheet.name == newSht);
+            const newUrl = newSheet.url;
+            console.log(newUrl);
+            $("#userInput").val(newUrl); // write the new URL back into the form input field
+          });
           viz.addEventListener( TableauEventType.FilterChanged, onFilterChanged );
           viz.id = 'vizId';
           viz.src = urlInput.value;
@@ -74,8 +89,8 @@
             // Remove the viz element if it already exists to avoid doubling up
             vizElement.parentNode.removeChild(vizElement);
           }
-          document.getElementById( 'tableauViz' ).appendChild(viz);
-          //vizWrapper.appendChild(viz);
+          //document.getElementById( 'tableauViz' ).appendChild(viz);
+          vizWrapper.appendChild(viz);
           clearText();
 
           e.preventDefault(); // Prevent the form from redirecting?
@@ -192,6 +207,15 @@
         $( '#dataTable0' ).html( result );
 
       }; // renderSumData()
+
+      async function filter( filterName, filterValue ){
+        // Called by HTML buttons to filter visualisation but getting data table updated is handled by onFilterChanged().
+        //for( let i=0; i < vizWorksheets.length; i++ ){ 
+          //const filterValueArray = Array.of( filterValue );
+          await viz.workbook.activeSheet.applyFilterAsync(filterName, [filterValue], FilterUpdateType.Replace);
+          console.log(filterValue);
+        //};
+      }; // filter() Two filters: "Jurisdiction" or "Indigenous Status" */
 
       function getFilters() {
 
@@ -383,16 +407,16 @@
       <a class="navbar-brand me-0 py-1 px-3 fs-6 text-white" href="#">Tableau visualisations</a>
     </div><!-- col-3 -->
     <div class="col-md-5">
-      <div class="btn-group mt-1 ms-0 mb-1" role="group" aria-label="Radio toggle button group for indigenous status">
-        <input type="radio" class="btn-check" name="indigenousradio" id="radio1" autocomplete="off" value="Aboriginal and Torres Strait Islander people" checked="" onchange="filter( 'Indigenous Status', value );">
+      <div id="indigButtons" class="btn-group mt-1 ms-0 mb-1" role="group" aria-label="Radio toggle button group for indigenous status">
+        <input type="radio" class="btn-check" name="indigenousradio" id="radio1" autocomplete="off" value="Aboriginal and Torres Strait Islander people" checked="">
         <label class="btn btn-outline-light btn-sm" for="radio1">Aboriginal and Torres Strait Islander</label>
-        <input type="radio" class="btn-check" name="indigenousradio" id="radio2" autocomplete="off" value="Non-Indigenous people" onchange="filter( 'Indigenous Status', value );">
+        <input type="radio" class="btn-check" name="indigenousradio" id="radio2" autocomplete="off" value="Non-Indigenous people">
         <label class="btn btn-outline-light btn-sm" for="radio2">Non-Indigenous</label>
       </div>
     </div><!-- col-5 -->
     <div class="col-md-4">
       <div id="jurisButtons" class="btn-group mt-1" role="group" aria-label="Radio toggle button group for jurisdiction">
-        <input type="radio" class="btn-check" name="jurisradio" id="btnradio0" autocomplete="off" value="Aust" checked="" onchange="filter( 'Jurisdiction', value );"><label class="btn btn-outline-light btn-sm" for="btnradio0">Aust</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio1" autocomplete="off" value="NSW" onchange="filter( 'Jurisdiction', value );"><label class="btn btn-outline-light btn-sm" for="btnradio1">NSW</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio2" autocomplete="off" value="Vic" onchange="filter( 'Jurisdiction', value );"><label class="btn btn-outline-light btn-sm" for="btnradio2">Vic</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio3" autocomplete="off" value="Qld" onchange="filter( 'Jurisdiction', value );"><label class="btn btn-outline-light btn-sm" for="btnradio3">Qld</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio4" autocomplete="off" value="WA" onchange="filter( 'Jurisdiction', value );"><label class="btn btn-outline-light btn-sm" for="btnradio4">WA</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio5" autocomplete="off" value="SA" onchange="filter( 'Jurisdiction', value );"><label class="btn btn-outline-light btn-sm" for="btnradio5">SA</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio6" autocomplete="off" value="Tas" onchange="filter( 'Jurisdiction', value );"><label class="btn btn-outline-light btn-sm" for="btnradio6">Tas</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio7" autocomplete="off" value="ACT" onchange="filter( 'Jurisdiction', value );"><label class="btn btn-outline-light btn-sm" for="btnradio7">ACT</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio8" autocomplete="off" value="NT" onchange="filter( 'Jurisdiction', value );"><label class="btn btn-outline-light btn-sm" for="btnradio8">NT</label>
+        <input type="radio" class="btn-check" name="jurisradio" id="btnradio0" autocomplete="off" value="Aust" checked=""><label class="btn btn-outline-light btn-sm" for="btnradio0">Aust</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio1" autocomplete="off" value="NSW"><label class="btn btn-outline-light btn-sm" for="btnradio1">NSW</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio2" autocomplete="off" value="Vic"><label class="btn btn-outline-light btn-sm" for="btnradio2">Vic</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio3" autocomplete="off" value="Qld"><label class="btn btn-outline-light btn-sm" for="btnradio3">Qld</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio4" autocomplete="off" value="WA"><label class="btn btn-outline-light btn-sm" for="btnradio4">WA</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio5" autocomplete="off" value="SA"><label class="btn btn-outline-light btn-sm" for="btnradio5">SA</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio6" autocomplete="off" value="Tas"><label class="btn btn-outline-light btn-sm" for="btnradio6">Tas</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio7" autocomplete="off" value="ACT"><label class="btn btn-outline-light btn-sm" for="btnradio7">ACT</label><input type="radio" class="btn-check" name="jurisradio" id="btnradio8" autocomplete="off" value="NT"><label class="btn btn-outline-light btn-sm" for="btnradio8">NT</label>
       </div>
     </div><!-- col-4 -->
   </div>
@@ -445,7 +469,7 @@
         <h1 class="h2">Test/diagnose tabviz for embed and datatable</h1>
       </div>
       <form id="urlForm">
-        <input class="mb-2" id="userInput" name="url" placeholder="Enter Tableau viz url or clear the input and click here to choose from previously entered urls" type="text" size="75" autocomplete="on"></input>
+        <input class="mb-2" id="userInput" name="url" placeholder="Enter Tableau viz url or clear the input and click here to choose from previously entered urls" type="text" size="100" autocomplete="on"></input>
         <button type="submit" class="submit-vizurl btn btn-success btn-sm text-white" style="margin-top: -4px;">Submit tabviz URL</button>
       </form>
       <div id="viz0">
@@ -463,15 +487,6 @@
             <div class="mt-2" id="tableauViz" width="100%">
               
             </div>
-            <!--<tableau-viz
-              device="desktop"
-              show-tabs
-              toolbar="bottom"
-            >
-            </tableau-viz>
-            <div id="tableauViz"> src="https://public.tableau.com/views/CtG05a_SchoolAttendance_Supp_embargo_LFTest/FigureSE5a_2"
-              <tableau-viz></tableau-viz>
-            </div>-->
           </div>
           <div class="col-3">
             <div id="filtersdata"></div>
