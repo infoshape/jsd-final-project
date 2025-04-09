@@ -65,63 +65,24 @@
               console.log(newUrl);
               $("#userInput").val(newUrl); // wrtie the new URL back into the form input field
             });
-          //viz.addEventListener( TableauEventType.FilterChanged, onFilterChanged );
+          viz.addEventListener( TableauEventType.FilterChanged, onFilterChanged );
+          viz.id = 'vizId';
           viz.src = urlInput.value;
+          const vizElement = document.getElementById('vizId');
+          const vizWrapper = document.getElementById( 'tableauViz' );
+          if( vizElement ){
+            // Remove the viz element if it already exists to avoid doubling up
+            vizElement.parentNode.removeChild(vizElement);
+          }
           document.getElementById( 'tableauViz' ).appendChild(viz);
+          //vizWrapper.appendChild(viz);
+          clearText();
 
           e.preventDefault(); // Prevent the form from redirecting?
         } // initialiseViz()
       });
 
-      /* function initialiseViz( vizUrl ) {
-        viz = new TableauViz();
-        //viz = document.getElementById("viz");
-        viz.src = vizUrl;
-        viz.height = '657px';
-        viz.width = '100%';
-        // viz.hideTabs = true;
-        viz.hideToolbar = true;
-        document.getElementById( 'tableauViz' ).appendChild(viz);
-        clearText();
-      } */
-
-      /* let dashboard;
-      let worksheet;
-      if (viz.workbook.activeSheet.sheetType === SheetType.Dashboard) {
-        dashboard = viz.workbook.activeSheet;
-
-        // Provide the name of the worksheet you want to use from the dashboard
-        worksheet = dashboard.worksheets.find((ws) => ws.name === 'Figure SE5a.2');
-      } else {
-        // Active sheet is already a worksheet
-        worksheet = viz.workbook.activeSheet;
-      }
-
-      // *** Insert your code below! ***
-
-      try {
-        // getFiltersAsync (Dashboard)
-
-        // For more information, see
-        // https://help.tableau.com/current/api/embedding_api/en-us/docs/embedding_api_filter.html
-
-        const dashFilters = await dashboard.getFiltersAsync();
-        console.log('Available dashboard filters:');
-        console.log(dashFilters);
-
-        // show # and names of categorical filters in the Console
-        const categoricalFilters = dashFilters.filter((df) => df.filterType === FilterType.Categorical);
-        console.log(categoricalFilters);
-
-        console.log(`The number of categorical filters: ${categoricalFilters.length}
-        Filters: ${categoricalFilters.map((s) => s.fieldName)}`);
-      } catch (e) {
-        console.error(e.toString());
-      } */
-
       async function getSumData( ){
-
-        //const currentWorksheet = vizWorksheets[ vizIndex ];
 
         // Header row
         const dataHeader = await viz.workbook.activeSheet.worksheets[0].getSummaryColumnsInfoAsync();
@@ -142,7 +103,6 @@
             dataLabelIndexes[ labels[i].replace(/[\s\(\)]/g, '') ] = currentDataLabel;  // regex removes spaces and brackets
           }
         }
-        //return dataLabelIndexes; 
 
         if ( dataLabels.indexOf('_') != -1 ) { // underscores being used in col headings
           $('#viz0 .info').append('&bull; Column heading/s using underscore').css('display', 'inline-block');
@@ -172,20 +132,9 @@
           $('#viz0 #missing').append('&bull; Data String ').css('display', 'inline-block');
         }
 
-        // Request header and data, process headers
-        //const dataLabelIndexes = await requestHeaderProcessColumns( currentWorksheet );
-        //console.log(dataLabelIndexes);
+        // Request header
         const dataTable = await requestData( viz.workbook.activeSheet ); 
-        console.log(dataTable);
-        // Store off specific table values: tableNumber, unit, dataIndex, whether the data has 1 decimal place.
-        //const tableNumber = dataTable[0][dataLabelIndexes.TableNumber].formattedValue;
-        //const unit = dataTable[0][dataLabelIndexes.Unit].formattedValue;
-        //const dataIndex = ( dataLabelIndexes.Value1dp > -1  ) ? dataLabelIndexes.Value1dp : dataLabelIndexes.DataValue;
-        //const set1dp = ( dataLabelIndexes.Value1dp > -1  ) ? true : false;
-
-        // Data table reduce size/columns, pivot and render.
-        //const simplifiedDataTable = reduceData( dataTable, dataLabelIndexes, dataIndex );
-        //const pivotTable = pivotData( simplifiedDataTable );
+        
         renderSumData( dataTable, dataHeader );
 
       }; // getSumData()
@@ -302,6 +251,14 @@
           $('#filtersdata').html(sizevalstext).append(filterstext);
         });
       }
+
+      function onFilterChanged(){
+        // Listener event called if on-chart filters are changed.
+        clearText();
+        getSumData();
+        getFilters();
+
+      }; // onFilterChanged()
 
       function clearText() {
         const vizElement = document.getElementById('viz');
