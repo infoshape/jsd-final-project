@@ -6,7 +6,6 @@
 - **[Overview](#overview-toc)**
 - **[Planning stage](#planning-stage-toc)**
 - **[Screenshot](#screenshot-toc)**
-- **[What I learned](#what-i-learned-toc)**
 - **[Other technology](#other-technology-toc)**
 - **[Wishlist/Future features](#wishlistfuture-features-toc)**
   
@@ -31,11 +30,6 @@ The following illustration shows the structure of the underlying data returned b
 ## Screenshot [<sup><sup><sup>[TOC]</sup></sup></sup>](#table-of-contents)
 
 ![App screenshot](screenshot1.png?raw=true "Capture showing HTML filter buttons, viz and data table")
-
-## What I learned [<sup><sup><sup>[TOC]</sup></sup></sup>](#table-of-contents)
-
-- Its a little different handling a JavaScript module, namely, the Tableau Embedding API **v3**.
-- Using Async/await is better/easier to use than Promises.
 
 ## Other technology [<sup><sup><sup>[TOC]</sup></sup></sup>](#table-of-contents)
 
