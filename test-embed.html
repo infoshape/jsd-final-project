@@ -234,7 +234,7 @@
         //};
       }; // filter() Two filters: "Jurisdiction" or "Indigenous Status" */
 
-      function getFilters() {
+      async function getFilters() {
 
         let filterstext ='';
         let sheetstext = '';
@@ -242,7 +242,7 @@
 
         //const currentWorksheet = vizWorksheets[ vizIndex ];
 
-        viz.workbook.activeSheet.getFiltersAsync()
+        await viz.workbook.activeSheet.getFiltersAsync()
           .then(function(filters) {
           console.log("get filters promise returned");
           filterstext = '<p class="mb-0"><strong>Filters</strong></p>';
