@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="./css/style.css">
     <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js'></script>
     <script type="module">
-      import { TableauViz, TableauEventType, FilterType, FilterUpdateType, SheetType } from 'https://public.tableau.com/javascripts/api/tableau.embedding.3.latest.js';
+      import { TableauViz, TableauEventType, FilterType, FilterUpdateType, SheetType, IncludeDataValuesOption } from 'https://public.tableau.com/javascripts/api/tableau.embedding.3.latest.js';
 
       let viz;
       let sheetsInformation;
@@ -107,7 +107,7 @@
           worksheetstext += wsheet.name;
         }
         let sheetstext = '<br /><strong>Sheet type</strong>: ' + activeSheet.sheetType + '<br /><strong>Worksheet</strong>: ' + worksheetstext;
-        const sizevals = viz.workbook.activeSheet['_workbookImpl']['_activeSheetImpl']['_sheetInfoImpl']['_sheetSize'];
+        const sizevals = activeSheet.size;
         sizevalstext = '<p class="lh-sm"><strong>Dashboard</strong><br /> <span class="small"><strong>Min size</strong>: ' + JSON.stringify(sizevals['minSize']).replaceAll('"', '').replaceAll('{', '').replaceAll('}', '').replaceAll(',', ' ') + '<br /><strong>Max size</strong>: ' + JSON.stringify(sizevals['maxSize']).replaceAll('"', '').replaceAll('{', '').replaceAll('}', '').replaceAll(',', ' ') + sheetstext + '</span></p>';
         if ( sizevalstext.indexOf('820') < 0 ) {
             $('#viz0 .warn').append("&bull; Please check that the maxSize width of the dashboard is set to 820.").css('display', 'inline-block');
@@ -173,16 +173,15 @@
 
       async function requestData( worksheet ){
 
-        const summaryDataOptions = {
-
-            maxRows: 0,
-            ignoreAliases: false,
-            ignoreSelection: true,
-            includeDataValuesOption: 'only-formatted-values',
+        const getSummaryDataOptions = {
+          maxRows: 0,
+          ignoreAliases: false,
+          ignoreSelection: true,
+          includeDataValuesOption: 'only-formatted-values'
         };
 
-        const summaryData = await worksheet.worksheets[0].getSummaryDataAsync(summaryDataOptions);
-        return summaryData.data;
+        const dataTable = await worksheet.worksheets[0].getSummaryDataAsync(getSummaryDataOptions);
+        return dataTable.data;
 
       }; // requestData()
 
@@ -202,8 +201,8 @@
           if( rowIndex === 0 ){  
 
             result += "<tr>";
-            row.forEach( ( item, colIndex ) => {
-                result += "<th scope='col'>" + item['_fieldName'].toString() + "</th>";
+            row.forEach( ( item ) => {
+                result += "<th scope='col'>" + item.fieldName.toString() + "</th>";
             });
             result += "</tr></thead><tbody>";
 
@@ -211,10 +210,8 @@
           } else {  
 
             result += "<tr>";
-            row.forEach( ( item, colIndex ) => {
-
-                result += "<td class='text-center'>" + item['_formattedValue'].toString() + "</td>";
-
+            row.forEach( ( value ) => {
+              result += "<td class='text-center'>" + value.formattedValue + "</td>";
             });
             result += "</tr>";
           }
