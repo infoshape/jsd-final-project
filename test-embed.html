@@ -20,6 +20,9 @@
       let sheetsInformation;
       let sizevalstext;
       let activeSheet;
+      //const testPhoneButton = document.getElementById("testPhone");
+      //const resetDeviceButton = document.getElementById("resetDevice");
+      //const dStat = document.getElementById("devStatus");
       // Ensures the DOM (html) is loaded before trying to use the elements
       window.addEventListener('DOMContentLoaded', function() {
         const urlInput = document.getElementById("userInput"),
@@ -43,7 +46,7 @@
           }
         });
 
-        function initialiseViz( e ) {
+        function initialiseViz( ev ) {
 
           viz = new TableauViz();
 
@@ -75,18 +78,21 @@
               getSumData();
               getFilters();
               getRhsText();
-              //resetHtmlFilters();
             }
             let newSheet = sheetsInformation.find(sheet => sheet.name == newSht);
             const newUrl = newSheet.url;
             console.log(newUrl);
-            $("#userInput").val(newUrl); // write the new URL back into the form input field
+            urlInput.value = newUrl;
+            //viz.src = urlInput.value;
+            //viz.device = 'default';
+            //dStat.innerHTML = '<p>Device layout: ' + viz.device + '</p>';
           });
           viz.addEventListener( TableauEventType.FilterChanged, onFilterChanged );
           viz.id = 'vizId';
           viz.src = urlInput.value;
+          //viz.device = 'default';
           const vizElement = document.getElementById('vizId');
-          const vizWrapper = document.getElementById( 'tableauViz' );
+          const vizWrapper = document.getElementById('tableauViz');
           if( vizElement ){
             // Remove the viz element if it already exists to avoid doubling up
             vizElement.parentNode.removeChild(vizElement);
@@ -94,9 +100,20 @@
           //document.getElementById( 'tableauViz' ).appendChild(viz);
           vizWrapper.appendChild(viz);
           clearText();
+          //dStat.innerHTML = '<p>Device layout: ' + viz.device + '</p>';
 
-          e.preventDefault(); // Prevent the form from redirecting?
+          ev.preventDefault(); // Prevent the form from redirecting?
         } // initialiseViz()
+
+        /* testPhoneButton.onclick = () => {
+            viz.device = 'phone';
+            dStat.innerHTML = '<p>Device layout: ' + viz.device + '</p>';
+        }
+
+        resetDeviceButton.onclick = () => {
+            viz.device = 'default';
+            dStat.innerHTML = '<p>Device layout: ' + viz.device + '</p>';
+        } */
       });
 
       async function getRhsText(){
@@ -107,11 +124,11 @@
           worksheetstext += wsheet.name;
         }
         let sheetstext = '<br /><strong>Sheet type</strong>: ' + activeSheet.sheetType + '<br /><strong>Worksheet</strong>: ' + worksheetstext;
-        const sizevals = activeSheet.size;
+        let sizevals = activeSheet.size;
         sizevalstext = '<p class="lh-sm"><strong>Dashboard</strong><br /> <span class="small"><strong>Min size</strong>: ' + JSON.stringify(sizevals['minSize']).replaceAll('"', '').replaceAll('{', '').replaceAll('}', '').replaceAll(',', ' ') + '<br /><strong>Max size</strong>: ' + JSON.stringify(sizevals['maxSize']).replaceAll('"', '').replaceAll('{', '').replaceAll('}', '').replaceAll(',', ' ') + sheetstext + '</span></p>';
         if ( sizevalstext.indexOf('820') < 0 ) {
-            $('#viz0 .warn').append("&bull; Please check that the maxSize width of the dashboard is set to 820.").css('display', 'inline-block');
-        }
+          $('#viz0 .warn').append("&bull; Please check that the maxSize width of the dashboard is set to 820.").css('display', 'inline-block');
+        } 
       } // getRhsText();
 
       async function getSumData( ){
@@ -427,7 +444,7 @@
       <a class="navbar-brand me-0 py-1 px-3 fs-6 text-white" href="#">Tableau visualisations</a>
     </div><!-- col-3 -->
     <div class="col-md-5">
-      <div id="indigButtons" class="btn-group mt-1 ms-0 mb-1" role="group" aria-label="Radio toggle button group for indigenous status">
+      <span class="d-inline text-white fs-5">*</span>&nbsp; <div id="indigButtons" class="btn-group mt-1 ms-0 mb-1" role="group" aria-label="Radio toggle button group for indigenous status">
         <input type="radio" class="btn-check" name="indigenousradio" id="radio1" autocomplete="off" value="Aboriginal and Torres Strait Islander people" checked="">
         <label class="btn btn-outline-light btn-sm" for="radio1">Aboriginal and Torres Strait Islander</label>
         <input type="radio" class="btn-check" name="indigenousradio" id="radio2" autocomplete="off" value="Non-Indigenous people">
@@ -479,7 +496,18 @@
 
           <hr class="my-3">
 
-          <!--<p style="margin-top: 30rem">This is a Bootstrap 5 example template: <a href="https://getbootstrap.com/docs/5.3/examples/dashboard">Dashboard</a>, which has been customised.</p>-->
+          <!--<p>Test for a phone layout:
+            <button id="testPhone" class="btn btn-secondary btn-sm">Test <acronym title=
+              "Tableau visualisation">tabviz</acronym></button>
+          </p>
+          <p>If the tabviz resizes, then a 'phone' layout is present and should be removed. <a href="#" id="resetDevice">Reset</a> device layout.</p>
+          <div id="devStatus"></div>-->
+          <p class="mb-0">Test all <acronym title=
+            "Tableau visualisations">tabviz</acronym> on a mobile phone.</p>  
+            <p class="mb-0">For this setup it is important <strong><em>not</em></strong> to have a device specific layout for a phone.</p>
+            <p>If present the mobile view will most likely be too tall and this is the trigger to remove the phone layout from the tabviz workbook.</p>
+            <hr style="width: 80%; margin-left: 0.8rem; margin-bottom: 0.3rem;" />
+            <p><span class="d-inline fs-6" style="margin-left: -0.6rem;">*</span> Standard set of filter buttons which may or may not apply to the tabviz displayed.</p>
         </div>
       </div>
     </div>
